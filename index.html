@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuristic Timer</title>
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏳</text></svg>">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="presets">
+            <button class="preset-btn" data-time="300">5 MIN</button>
+            <button class="preset-btn" data-time="900">15 MIN</button>
+            <button class="preset-btn" data-time="1800">30 MIN</button>
+            <button class="preset-btn" data-time="3600">1 ORA</button>
+        </header>
+
+        <main class="timer-section">
+            <div class="timer-ring">
+                <div class="timer-circle"></div>
+                <div id="time-display" class="time-display" contenteditable="false" spellcheck="false"
+                    title="Clicca per modificare">
+                    05:00
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="toggle-btn" class="control-btn play-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                        <path d="M8 5v14l11-7z" id="play-icon" />
+                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" id="pause-icon" style="display:none;" />
+                    </svg>
+                    <span id="toggle-text">START</span>
+                </button>
+                <button id="pause-btn" class="control-btn pause-ctrl-btn" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                    </svg>
+                    PAUSA
+                </button>
+                <button id="reset-btn" class="control-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                        <path d="M3 3v5h5" />
+                    </svg>
+                    RESET
+                </button>
+            </div>
+        </main>
+
+        <div class="notification-toast" id="toast">
+            Timer Completato!
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

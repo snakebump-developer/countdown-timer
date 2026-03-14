@@ -1,0 +1,277 @@
+:root {
+    --bg-dark: #050810;
+    --neon-cyan: #0ff;
+    --neon-pink: #f0f;
+    --text-primary: #ffffff;
+    --text-secondary: #a0aab8;
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image:
+        radial-gradient(circle at 50% 0%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 50% 100%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
+    overflow: hidden;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* Header & Presets */
+.presets {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 4rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.preset-btn {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    letter-spacing: 1px;
+}
+
+.preset-btn:hover,
+.preset-btn.active {
+    color: var(--neon-cyan);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3), inset 0 0 10px rgba(0, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Main Timer Area */
+.timer-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Timer Display */
+.timer-ring {
+    position: relative;
+    width: 350px;
+    height: 350px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    margin-bottom: 3rem;
+    background: radial-gradient(circle, rgba(0, 255, 255, 0.02) 0%, transparent 70%);
+}
+
+.timer-circle {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 255, 255, 0.1);
+    box-shadow: 0 0 40px rgba(0, 255, 255, 0.05), inset 0 0 40px rgba(0, 255, 255, 0.05);
+    animation: pulse 4s infinite alternate;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(1.02);
+        opacity: 1;
+        border-color: rgba(0, 255, 255, 0.3);
+    }
+}
+
+.time-display {
+    font-family: 'Orbitron', monospace;
+    font-size: 4rem;
+    /* Reduced to fit max "00:00:00" */
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.6), 0 0 40px rgba(0, 255, 255, 0.2);
+    cursor: pointer;
+    z-index: 2;
+    transition: all 0.3s ease;
+    border: none;
+    outline: none;
+    background: transparent;
+    text-align: center;
+    width: 250px;
+    max-width: 80%;
+    word-break: break-all;
+    border-bottom: 2px solid transparent;
+}
+
+.time-display:hover {
+    text-shadow: 0 0 30px rgba(0, 255, 255, 0.8), 0 0 60px rgba(0, 255, 255, 0.4);
+    transform: scale(1.05);
+}
+
+.time-display:focus {
+    color: var(--neon-pink);
+    text-shadow: 0 0 20px rgba(255, 0, 255, 0.6), 0 0 40px rgba(255, 0, 255, 0.2);
+    border-bottom: 2px solid var(--neon-pink);
+    transform: scale(1.05);
+}
+
+/* Controls */
+.controls {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.control-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 0.8rem 2rem;
+    border-radius: 50px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.play-btn {
+    background: var(--neon-cyan);
+    color: #000;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+}
+
+.play-btn:hover {
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
+    transform: translateY(-2px);
+}
+
+.play-btn.paused {
+    background: transparent;
+    border: 2px solid var(--neon-pink);
+    color: var(--neon-pink);
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+}
+
+.play-btn.paused:hover {
+    box-shadow: 0 0 25px rgba(255, 0, 255, 0.5);
+}
+
+.play-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
+}
+
+#pause-btn {
+    background: transparent;
+    border: 2px solid var(--neon-pink);
+    color: var(--neon-pink);
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+}
+
+#pause-btn:hover:not(:disabled) {
+    box-shadow: 0 0 25px rgba(255, 0, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+#pause-btn:disabled {
+    border-color: var(--glass-border);
+    color: var(--text-secondary);
+    box-shadow: none;
+    opacity: 0.3;
+    cursor: not-allowed;
+    transform: none;
+}
+
+#reset-btn {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--glass-border);
+}
+
+#reset-btn:hover {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Toast */
+.notification-toast {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    color: var(--neon-cyan);
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+    transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 100;
+}
+
+.notification-toast.show {
+    bottom: 50px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .timer-ring {
+        width: 280px;
+        height: 280px;
+    }
+
+    .time-display {
+        font-size: 3rem;
+        /* Scaled down even more for mobile */
+        width: 200px;
+    }
+
+    .presets {
+        gap: 0.8rem;
+    }
+
+    .preset-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+}
