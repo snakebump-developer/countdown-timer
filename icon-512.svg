@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <defs>
+        <linearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#0ff"/>
+            <stop offset="100%" stop-color="#f0f"/>
+        </linearGradient>
+        <filter id="glow">
+            <feGaussianBlur stdDeviation="6" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+    </defs>
+    <!-- Background -->
+    <rect width="512" height="512" rx="100" fill="#050810"/>
+    <!-- Outer ring -->
+    <circle cx="256" cy="256" r="210" fill="none" stroke="url(#ring)" stroke-width="18" stroke-linecap="round"
+        stroke-dasharray="1319" stroke-dashoffset="330" filter="url(#glow)"
+        transform="rotate(-90 256 256)"/>
+    <!-- Inner dim track -->
+    <circle cx="256" cy="256" r="210" fill="none" stroke="rgba(0,255,255,0.12)" stroke-width="18"/>
+    <!-- Clock center dot -->
+    <circle cx="256" cy="256" r="14" fill="#0ff" filter="url(#glow)"/>
+    <!-- Clock hands -->
+    <line x1="256" y1="256" x2="256" y2="140" stroke="#0ff" stroke-width="11" stroke-linecap="round" filter="url(#glow)"/>
+    <line x1="256" y1="256" x2="326" y2="256" stroke="#f0f" stroke-width="9" stroke-linecap="round" filter="url(#glow)"/>
+</svg>
