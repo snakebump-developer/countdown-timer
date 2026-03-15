@@ -811,6 +811,13 @@ body {
     }
 }
 
+/* Nasconde le scorciatoie su touch (hover non disponibile) */
+@media (hover: none) {
+    .shortcuts {
+        display: none;
+    }
+}
+
 /* ======================================
    RESPONSIVE – mobile-first (min-width)
 ====================================== */

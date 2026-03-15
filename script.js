@@ -50,26 +50,36 @@ document.addEventListener('DOMContentLoaded', () => {
     updateRing();
 
     // Sound Synthesis (Web Audio API)
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let audioCtx = null;
+    try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+        // Audio non disponibile (es. iOS senza gesto utente)
+    }
     
     function playSynthBeep(freq, type, duration, vol=0.1) {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        
-        // Envelope to prevent clipping
-        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-        
-        osc.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
+        if (!audioCtx || audioCtx.state === 'closed') return;
+        try {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            
+            // Envelope to prevent clipping
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        } catch (e) {
+            // Audio non disponibile su questo dispositivo/stato
+        }
     }
 
     function playClick() { playSynthBeep(600, 'sine', 0.1, 0.1); }
@@ -313,13 +323,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle timer completion
     function timerComplete() {
-        playAlarm();
+        try { playAlarm(); } catch (e) { /* audio non disponibile */ }
 
         if (isPomodoroMode) {
             if (pomPhase === 'work') {
                 addTomato();
 
-                if (Notification.permission === 'granted') {
+                if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
                     new Notification(`🍅 Sessione focus #${pomCount} completata!`, {
                         body: `Prenditi una pausa di ${formatTime(getPomBreakSec())}.`
                     });
@@ -338,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const allDone = !pomIsInfinite && pomCyclesCompleted >= maxCycles;
 
                 if (allDone) {
-                    if (Notification.permission === 'granted') {
+                    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
                         new Notification(`🏆 Sessione completata!`, {
                             body: `${pomCount} pomodor${pomCount === 1 ? 'o' : 'i'} in ${pomCyclesCompleted} cicl${pomCyclesCompleted === 1 ? 'o' : 'i'}!`
                         });
@@ -356,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                if (Notification.permission === 'granted') {
+                if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
                     new Notification('⚡ Break terminato! Nuova sessione focus.', {
                         body: `Pomodori completati: ${pomCount}`
                     });
@@ -378,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 3000);
 
         } else {
-            if (Notification.permission === 'granted') {
+            if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
                 new Notification('Timer Completato!', {
                     body: 'Il conto alla rovescia è terminato.',
                     icon: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏰</text></svg>"
@@ -395,12 +405,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function requestPermissions() {
         if (!hasInteracted) {
             hasInteracted = true;
-            if (audioCtx.state === 'suspended') {
+            if (audioCtx && audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
 
             // Notification perm
-            if ("Notification" in window && Notification.permission === "default") {
+            if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
                 Notification.requestPermission();
             }
         }
