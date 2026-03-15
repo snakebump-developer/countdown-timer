@@ -32,8 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Pomodoro elements
     const pomToggle = document.getElementById('pom-toggle');
     const pomConfig = document.getElementById('pom-config');
-    const pomWorkInput = document.getElementById('pom-work');
-    const pomBreakInput = document.getElementById('pom-break');
+    const pomWorkMinInput = document.getElementById('pom-work-min');
+    const pomWorkSecInput = document.getElementById('pom-work-sec');
+    const pomBreakMinInput = document.getElementById('pom-break-min');
+    const pomBreakSecInput = document.getElementById('pom-break-sec');
     const phaseLabel = document.getElementById('phase-label');
     const tomatoesEl = document.getElementById('tomatoes');
     const tomatoesTray = document.getElementById('tomatoes-tray');
@@ -104,11 +106,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Pomodoro helpers ──────────────────────────────────────────
 
     function getPomWorkSec() {
-        return Math.max(1, parseInt(pomWorkInput.value, 10) || 25) * 60;
+        const m = Math.max(0, parseInt(pomWorkMinInput.value, 10) || 0);
+        const s = Math.min(59, Math.max(0, parseInt(pomWorkSecInput.value, 10) || 0));
+        return Math.max(1, m * 60 + s);
     }
 
     function getPomBreakSec() {
-        return Math.max(1, parseInt(pomBreakInput.value, 10) || 5) * 60;
+        const m = Math.max(0, parseInt(pomBreakMinInput.value, 10) || 0);
+        const s = Math.min(59, Math.max(0, parseInt(pomBreakSecInput.value, 10) || 0));
+        return Math.max(1, m * 60 + s);
     }
 
     function updatePhaseLabel() {
@@ -308,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (Notification.permission === 'granted') {
                     new Notification(`🍅 Sessione focus #${pomCount} completata!`, {
-                        body: `Prenditi una pausa di ${pomBreakInput.value} minuti.`
+                        body: `Prenditi una pausa di ${formatTime(getPomBreakSec())}.`
                     });
                 }
 
@@ -318,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updatePhaseLabel();
                 updateRingTheme();
                 updateDisplay();
-                toastSpan.textContent = `🍅  +1 pomodoro! Pausa di ${pomBreakInput.value} min in arrivo…`;
+                toastSpan.textContent = `🍅  +1 pomodoro! Pausa ${formatTime(getPomBreakSec())} in arrivo…`;
             } else {
                 if (Notification.permission === 'granted') {
                     new Notification('⚡ Break terminato! Nuova sessione focus.', {
@@ -458,6 +464,56 @@ document.addEventListener('DOMContentLoaded', () => {
             enterPomodoroMode();
         } else {
             exitPomodoroMode();
+        }
+    });
+
+    // Live-update timer when config inputs change (only when stopped, correct phase)
+    [pomWorkMinInput, pomWorkSecInput].forEach(el => {
+        el.addEventListener('input', () => {
+            if (!isPomodoroMode || isRunning || pomPhase !== 'work') return;
+            totalSeconds = getPomWorkSec();
+            currentSeconds = totalSeconds;
+            updateDisplay();
+        });
+    });
+
+    [pomBreakMinInput, pomBreakSecInput].forEach(el => {
+        el.addEventListener('input', () => {
+            if (!isPomodoroMode || isRunning || pomPhase !== 'break') return;
+            totalSeconds = getPomBreakSec();
+            currentSeconds = totalSeconds;
+            updateDisplay();
+        });
+    });
+
+    // Keyboard shortcuts: Space → start, P → pausa, R → reset
+    document.addEventListener('keydown', (e) => {
+        const tag = document.activeElement.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement === timeDisplay) return;
+
+        switch (e.code) {
+            case 'Space':
+                e.preventDefault();
+                if (!isRunning) {
+                    requestPermissions();
+                    playStart();
+                    startTimer();
+                }
+                break;
+            case 'KeyP':
+                e.preventDefault();
+                if (isRunning) {
+                    requestPermissions();
+                    playPause();
+                    stopTimer();
+                }
+                break;
+            case 'KeyR':
+                e.preventDefault();
+                requestPermissions();
+                playPause();
+                resetTimer();
+                break;
         }
     });
 });

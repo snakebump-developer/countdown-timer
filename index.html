@@ -29,27 +29,35 @@
         <!-- ── Pomodoro config (si rivela allo switch) ── -->
         <div class="pom-config" id="pom-config" aria-hidden="true">
             <div class="pom-config__field">
-                <label class="pom-config__label" for="pom-work">
+                <label class="pom-config__label" for="pom-work-min">
                     <i class="fa-solid fa-brain"></i> FOCUS
                 </label>
-                <input type="number" id="pom-work" class="pom-config__input" value="25" min="1" max="120">
-                <span class="pom-config__unit">min</span>
+                <div class="pom-config__time">
+                    <input type="number" id="pom-work-min" class="pom-config__input" value="25" min="0" max="120" aria-label="Minuti focus">
+                    <span class="pom-config__colon">:</span>
+                    <input type="number" id="pom-work-sec" class="pom-config__input" value="00" min="0" max="59" aria-label="Secondi focus">
+                </div>
+                <span class="pom-config__unit">mm:ss</span>
             </div>
             <span class="pom-config__sep"><i class="fa-solid fa-right-left"></i></span>
             <div class="pom-config__field">
-                <label class="pom-config__label" for="pom-break">
+                <label class="pom-config__label" for="pom-break-min">
                     <i class="fa-solid fa-mug-hot"></i> BREAK
                 </label>
-                <input type="number" id="pom-break" class="pom-config__input" value="5" min="1" max="60">
-                <span class="pom-config__unit">min</span>
+                <div class="pom-config__time">
+                    <input type="number" id="pom-break-min" class="pom-config__input" value="5" min="0" max="60" aria-label="Minuti break">
+                    <span class="pom-config__colon">:</span>
+                    <input type="number" id="pom-break-sec" class="pom-config__input" value="00" min="0" max="59" aria-label="Secondi break">
+                </div>
+                <span class="pom-config__unit">mm:ss</span>
             </div>
         </div>
 
         <header class="presets" id="presets-header">
-            <button class="presets__btn" data-time="300">5 MIN</button>
-            <button class="presets__btn" data-time="900">15 MIN</button>
-            <button class="presets__btn" data-time="1800">30 MIN</button>
-            <button class="presets__btn" data-time="3600">1 ORA</button>
+            <button class="presets__btn" data-time="300"  data-tooltip="5 minuti">5 MIN</button>
+            <button class="presets__btn" data-time="900"  data-tooltip="15 minuti">15 MIN</button>
+            <button class="presets__btn" data-time="1800" data-tooltip="30 minuti">30 MIN</button>
+            <button class="presets__btn" data-time="3600" data-tooltip="1 ora">1 ORA</button>
         </header>
 
         <main class="timer">
@@ -78,19 +86,44 @@
             </div>
 
             <div class="controls">
-                <button id="toggle-btn" class="controls__btn controls__btn--start">
+                <button id="toggle-btn" class="controls__btn controls__btn--start" data-tooltip="[ SPACE ]">
                     <i class="fa-solid fa-play" id="play-icon"></i>
                     <i class="fa-solid fa-pause" id="pause-icon" style="display:none;"></i>
                     <span id="toggle-text">START</span>
                 </button>
-                <button id="pause-btn" class="controls__btn controls__btn--pause" disabled>
+                <button id="pause-btn" class="controls__btn controls__btn--pause" data-tooltip="[ P ]" disabled>
                     <i class="fa-solid fa-pause"></i>
                     <span>PAUSA</span>
                 </button>
-                <button id="reset-btn" class="controls__btn controls__btn--reset">
+                <button id="reset-btn" class="controls__btn controls__btn--reset" data-tooltip="[ R ]">
                     <i class="fa-solid fa-rotate-right"></i>
                     <span>RESET</span>
                 </button>
+            </div>
+
+            <!-- Scorciatoie tastiera -->
+            <div class="shortcuts">
+                <button class="shortcuts__trigger" type="button" aria-label="Mostra scorciatoie tastiera">
+                    <i class="fa-solid fa-keyboard"></i>
+                    <span>SHORTCUT</span>
+                </button>
+                <div class="shortcuts__popup" role="tooltip">
+                    <p class="shortcuts__title">SCORCIATOIE</p>
+                    <ul class="shortcuts__list">
+                        <li class="shortcuts__item">
+                            <kbd class="shortcuts__key">Space</kbd>
+                            <span class="shortcuts__action">Start / Riprendi</span>
+                        </li>
+                        <li class="shortcuts__item">
+                            <kbd class="shortcuts__key">P</kbd>
+                            <span class="shortcuts__action">Pausa</span>
+                        </li>
+                        <li class="shortcuts__item">
+                            <kbd class="shortcuts__key">R</kbd>
+                            <span class="shortcuts__action">Reset</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
             <!-- Raccolta pomodori (visibile solo in modalità pomodoro) -->

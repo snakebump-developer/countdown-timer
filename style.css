@@ -28,7 +28,7 @@ body {
     background-image:
         radial-gradient(circle at 50% 0%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
         radial-gradient(circle at 50% 100%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
-    overflow: hidden;
+    overflow-x: hidden;
 }
 
 /* ======================================
@@ -41,7 +41,8 @@ body {
     align-items: center;
     width: 100%;
     max-width: 800px;
-    padding: 1.5rem 1rem;
+    padding: 1.5rem 1rem 3rem;
+    margin-block: auto;
     position: relative;
     z-index: 1;
 }
@@ -59,6 +60,7 @@ body {
 }
 
 .presets__btn {
+    position: relative;
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     color: var(--text-secondary);
@@ -199,6 +201,7 @@ body {
 }
 
 .controls__btn {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -406,7 +409,7 @@ body {
 }
 
 .pom-config--visible {
-    max-height: 100px;
+    max-height: 140px;
     opacity: 1;
     margin-bottom: 1.25rem;
     pointer-events: auto;
@@ -458,6 +461,22 @@ body {
     color: var(--text-secondary);
 }
 
+.pom-config__time {
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+}
+
+.pom-config__colon {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: rgba(255, 0, 255, 0.55);
+    line-height: 1;
+    padding-bottom: 1px;
+    user-select: none;
+}
+
 .pom-config__sep {
     color: rgba(255, 0, 255, 0.4);
     font-size: 0.7rem;
@@ -468,7 +487,10 @@ body {
 ====================================== */
 
 .presets--pomodoro {
-    opacity: 0.2;
+    max-height: 0;
+    overflow: hidden;
+    margin-bottom: 0 !important;
+    opacity: 0;
     pointer-events: none;
 }
 
@@ -576,6 +598,162 @@ body {
 }
 
 /* ======================================
+   SHORTCUTS
+====================================== */
+
+.shortcuts {
+    position: relative;
+    display: inline-flex;
+    justify-content: center;
+    margin-top: 0.9rem;
+}
+
+.shortcuts__trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    padding: 0.42rem 0.8rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    -webkit-tap-highlight-color: transparent;
+    text-transform: uppercase;
+}
+
+.shortcuts__trigger:hover,
+.shortcuts:focus-within .shortcuts__trigger {
+    color: var(--neon-cyan);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+}
+
+.shortcuts__popup {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%) translateY(6px);
+    background: rgba(5, 8, 16, 0.94);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(0, 255, 255, 0.18);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    min-width: 190px;
+    box-shadow:
+        0 0 20px rgba(0, 255, 255, 0.08),
+        0 8px 32px rgba(0, 0, 0, 0.7);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 50;
+}
+
+.shortcuts:hover .shortcuts__popup,
+.shortcuts:focus-within .shortcuts__popup {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+}
+
+.shortcuts__title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--neon-cyan);
+    margin-bottom: 0.55rem;
+    text-align: center;
+    text-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+}
+
+.shortcuts__list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.shortcuts__item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.shortcuts__key {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 54px;
+    padding: 0.15rem 0.35rem;
+    background: rgba(0, 255, 255, 0.05);
+    border: 1px solid rgba(0, 255, 255, 0.22);
+    border-bottom-width: 2px;
+    border-radius: 6px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.54rem;
+    font-weight: 700;
+    color: var(--neon-cyan);
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 0 rgba(0, 255, 255, 0.1);
+    white-space: nowrap;
+}
+
+.shortcuts__action {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.68rem;
+    color: var(--text-secondary);
+}
+
+/* ======================================
+   TOOLTIPS
+====================================== */
+
+@media (hover: hover) {
+    [data-tooltip] {
+        position: relative;
+    }
+
+    [data-tooltip]::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: calc(100% + 9px);
+        left: 50%;
+        transform: translateX(-50%) translateY(5px);
+        white-space: nowrap;
+        background: rgba(3, 6, 14, 0.96);
+        border: 1px solid rgba(0, 255, 255, 0.22);
+        border-radius: 7px;
+        padding: 0.28rem 0.6rem;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.47rem;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+        color: var(--neon-cyan);
+        text-shadow: 0 0 8px rgba(0, 255, 255, 0.55);
+        box-shadow:
+            0 0 12px rgba(0, 255, 255, 0.08),
+            0 4px 20px rgba(0, 0, 0, 0.7);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.18s ease, transform 0.18s ease;
+        z-index: 60;
+    }
+
+    [data-tooltip]:hover::after,
+    [data-tooltip]:focus-visible::after {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* ======================================
    RESPONSIVE – mobile-first (min-width)
 ====================================== */
 
@@ -642,13 +820,18 @@ body {
 }
 
 @media (min-width: 768px) {
+    /* ── Fit everything inside 100dvh, no scroll ── */
+    body {
+        overflow: hidden;
+    }
+
     .app {
-        padding: 2rem;
+        padding: 1rem 2rem;
     }
 
     .pom-switch {
         gap: 0.85rem;
-        margin-bottom: 1rem;
+        margin-bottom: 0.4rem;
     }
 
     .pom-switch__label {
@@ -663,37 +846,48 @@ body {
         font-size: 0.62rem;
     }
 
+    /* Override reveal animation target to tighter margin */
+    .pom-config--visible {
+        margin-bottom: 0.6rem;
+    }
+
     .presets {
         gap: 1.5rem;
-        margin-bottom: 4rem;
+        margin-bottom: 1.25rem;
     }
 
     .presets__btn {
         font-size: 1rem;
-        padding: 0.8rem 1.5rem;
+        padding: 0.7rem 1.35rem;
     }
 
     .phase-label {
         font-size: 0.72rem;
+        margin-bottom: 0.3rem;
     }
 
+    /* Ring scales with viewport height so it never overflows */
     .timer__ring {
-        width: 350px;
-        height: 350px;
-        margin-bottom: 3rem;
+        width: min(280px, 30dvh);
+        height: min(280px, 30dvh);
+        margin-bottom: 1.25rem;
     }
 
     .timer__display {
-        font-size: 4rem;
+        font-size: clamp(2.2rem, 4.8dvh, 3.8rem);
     }
 
     .controls {
-        gap: 1.5rem;
+        gap: 1.25rem;
     }
 
     .controls__btn {
-        font-size: 1rem;
-        padding: 0.8rem 2rem;
+        font-size: 0.95rem;
+        padding: 0.7rem 1.75rem;
+    }
+
+    .shortcuts {
+        margin-top: 0.5rem;
     }
 
     .toast {
@@ -702,9 +896,11 @@ body {
 
     .tomatoes {
         max-width: 420px;
+        max-height: 72px;
+        margin-top: 0.5rem;
     }
 
     .tomatoes__item {
-        font-size: 1.6rem;
+        font-size: 1.4rem;
     }
 }
