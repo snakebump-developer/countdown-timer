@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Constants
+    const CIRCUMFERENCE = 2 * Math.PI * 45; // ≈ 282.74 (r=45, viewBox 100×100)
+
     // State
     let totalSeconds = 300; // Default 5 min
     let currentSeconds = totalSeconds;
@@ -8,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Elements
     const timeDisplay = document.getElementById('time-display');
-    const presetBtns = document.querySelectorAll('.preset-btn');
+    const presetBtns = document.querySelectorAll('.presets__btn');
     const toggleBtn = document.getElementById('toggle-btn');
     const toggleText = document.getElementById('toggle-text');
     const playIcon = document.getElementById('play-icon');
@@ -16,9 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const pauseBtn = document.getElementById('pause-btn');
     const resetBtn = document.getElementById('reset-btn');
     const toast = document.getElementById('toast');
+    const progressRing = document.getElementById('progress-ring');
 
     // Init
     updateDisplay();
+    updateRing();
 
     // Sound Synthesis (Web Audio API)
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -71,6 +76,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Update SVG progress ring
+    function updateRing() {
+        const elapsed = totalSeconds - currentSeconds;
+        const fraction = totalSeconds > 0 ? elapsed / totalSeconds : 0;
+        progressRing.style.strokeDashoffset = CIRCUMFERENCE * (1 - fraction);
+    }
+
     // Helper: format time for display
     function formatTime(sec) {
         const h = Math.floor(sec / 3600);
@@ -115,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             timeDisplay.textContent = timeString;
         }
         document.title = `${timeString} - Futuristic Timer`;
+        updateRing();
     }
 
     // Controls
@@ -163,7 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
             pauseBtn.disabled = false;
         } else {
             toggleBtn.disabled = false;
-            toggleBtn.classList.remove('paused');
             const isPaused = currentSeconds < totalSeconds && currentSeconds > 0;
             toggleText.textContent = isPaused ? 'RIPRENDI' : 'START';
             playIcon.style.display = 'block';
@@ -189,8 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // In-app Toast
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 5000);
+        toast.classList.add('toast--visible');
+        setTimeout(() => toast.classList.remove('toast--visible'), 5000);
     }
 
     // Permissions
@@ -213,8 +225,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => {
             requestPermissions();
             playClick();
-            presetBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            presetBtns.forEach(b => b.classList.remove('presets__btn--active'));
+            btn.classList.add('presets__btn--active');
 
             const newTime = parseInt(btn.getAttribute('data-time'), 10);
             totalSeconds = newTime;
@@ -267,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Clear active presets
-        presetBtns.forEach(b => b.classList.remove('active'));
+        presetBtns.forEach(b => b.classList.remove('presets__btn--active'));
     });
 
     // Event Listeners: Controls
