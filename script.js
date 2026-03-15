@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let isPomodoroMode = false;
     let pomPhase = 'work'; // 'work' | 'break'
     let pomCount = 0;
+    let pomCyclesCompleted = 0;
+    let pomIsInfinite = false;
 
     // Elements
     const timeDisplay = document.getElementById('time-display');
@@ -36,6 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pomWorkSecInput = document.getElementById('pom-work-sec');
     const pomBreakMinInput = document.getElementById('pom-break-min');
     const pomBreakSecInput = document.getElementById('pom-break-sec');
+    const pomCyclesInput = document.getElementById('pom-cycles');
+    const pomInfiniteBtn = document.getElementById('pom-infinite');
     const phaseLabel = document.getElementById('phase-label');
     const tomatoesEl = document.getElementById('tomatoes');
     const tomatoesTray = document.getElementById('tomatoes-tray');
@@ -120,11 +124,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function updatePhaseLabel() {
         phaseLabel.className = 'phase-label';
         if (!isPomodoroMode) { phaseLabel.textContent = ''; return; }
+        const maxCycles = Math.max(1, parseInt(pomCyclesInput.value, 10) || 4);
+        const cycleStr = pomIsInfinite ? '\u221e' : `${pomCyclesCompleted + 1} / ${maxCycles}`;
         if (pomPhase === 'work') {
-            phaseLabel.textContent = '— FOCUS —';
+            phaseLabel.textContent = `— FOCUS \u2014  ${cycleStr}`;
             phaseLabel.classList.add('phase-label--work');
         } else {
-            phaseLabel.textContent = '— BREAK —';
+            phaseLabel.textContent = `— BREAK \u2014  ${cycleStr}`;
             phaseLabel.classList.add('phase-label--break');
         }
     }
@@ -158,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isPomodoroMode = true;
         pomPhase = 'work';
         pomCount = 0;
+        pomCyclesCompleted = 0;
         tomatoesTray.innerHTML = '';
 
         stopTimer();
@@ -326,6 +333,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateDisplay();
                 toastSpan.textContent = `🍅  +1 pomodoro! Pausa ${formatTime(getPomBreakSec())} in arrivo…`;
             } else {
+                pomCyclesCompleted++;
+                const maxCycles = Math.max(1, parseInt(pomCyclesInput.value, 10) || 4);
+                const allDone = !pomIsInfinite && pomCyclesCompleted >= maxCycles;
+
+                if (allDone) {
+                    if (Notification.permission === 'granted') {
+                        new Notification(`🏆 Sessione completata!`, {
+                            body: `${pomCount} pomodor${pomCount === 1 ? 'o' : 'i'} in ${pomCyclesCompleted} cicl${pomCyclesCompleted === 1 ? 'o' : 'i'}!`
+                        });
+                    }
+                    pomPhase = 'work';
+                    pomCyclesCompleted = 0;
+                    totalSeconds = getPomWorkSec();
+                    currentSeconds = totalSeconds;
+                    updatePhaseLabel();
+                    updateRingTheme();
+                    updateDisplay();
+                    toastSpan.textContent = `🏆 ${pomCount} pomodor${pomCount === 1 ? 'o' : 'i'} raccolti — sessione completata!`;
+                    toast.classList.add('toast--visible');
+                    setTimeout(() => toast.classList.remove('toast--visible'), 5000);
+                    return;
+                }
+
                 if (Notification.permission === 'granted') {
                     new Notification('⚡ Break terminato! Nuova sessione focus.', {
                         body: `Pomodori completati: ${pomCount}`
@@ -484,6 +514,20 @@ document.addEventListener('DOMContentLoaded', () => {
             currentSeconds = totalSeconds;
             updateDisplay();
         });
+    });
+
+    // Cycles count input — aggiorna label in tempo reale
+    pomCyclesInput.addEventListener('input', () => {
+        if (isPomodoroMode) updatePhaseLabel();
+    });
+
+    // Infinite toggle
+    pomInfiniteBtn.addEventListener('click', () => {
+        pomIsInfinite = !pomIsInfinite;
+        pomInfiniteBtn.classList.toggle('pom-config__infinite-btn--active', pomIsInfinite);
+        pomInfiniteBtn.setAttribute('aria-pressed', String(pomIsInfinite));
+        pomCyclesInput.disabled = pomIsInfinite;
+        if (isPomodoroMode) updatePhaseLabel();
     });
 
     // Keyboard shortcuts: Space → start, P → pausa, R → reset

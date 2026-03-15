@@ -51,6 +51,16 @@
                 </div>
                 <span class="pom-config__unit">mm:ss</span>
             </div>
+            <span class="pom-config__sep pom-config__sep--full"><i class="fa-solid fa-repeat"></i></span>
+            <div class="pom-config__field pom-config__field--cycles">
+                <label class="pom-config__label" for="pom-cycles">
+                    CICLI
+                </label>
+                <input type="number" id="pom-cycles" class="pom-config__input pom-config__input--cycles" value="4" min="1" max="99" aria-label="Numero di cicli">
+                <button id="pom-infinite" class="pom-config__infinite-btn" type="button" aria-label="Cicli infiniti" aria-pressed="false">
+                    <i class="fa-solid fa-infinity"></i>
+                </button>
+            </div>
         </div>
 
         <header class="presets" id="presets-header">

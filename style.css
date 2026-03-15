@@ -409,7 +409,7 @@ body {
 }
 
 .pom-config--visible {
-    max-height: 140px;
+    max-height: 220px;
     opacity: 1;
     margin-bottom: 1.25rem;
     pointer-events: auto;
@@ -480,6 +480,64 @@ body {
 .pom-config__sep {
     color: rgba(255, 0, 255, 0.4);
     font-size: 0.7rem;
+}
+
+.pom-config__sep--full {
+    flex-basis: 100%;
+    display: flex;
+    justify-content: center;
+    color: rgba(0, 255, 255, 0.3);
+    font-size: 0.65rem;
+    margin: -0.25rem 0;
+}
+
+/* ── Cicli row ── */
+
+.pom-config__field--cycles {
+    flex-basis: 100%;
+    justify-content: center;
+    gap: 0.65rem;
+    border-color: rgba(0, 255, 255, 0.18);
+}
+
+.pom-config__input--cycles {
+    width: 48px;
+    transition: opacity 0.3s ease;
+}
+
+.pom-config__input--cycles:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.pom-config__infinite-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid rgba(0, 255, 255, 0.25);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pom-config__infinite-btn:hover {
+    border-color: var(--neon-cyan);
+    color: var(--neon-cyan);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.25);
+}
+
+.pom-config__infinite-btn--active {
+    background: rgba(0, 255, 255, 0.1);
+    border-color: var(--neon-cyan);
+    color: var(--neon-cyan);
+    box-shadow: 0 0 14px rgba(0, 255, 255, 0.35), inset 0 0 8px rgba(0, 255, 255, 0.08);
 }
 
 /* ======================================
@@ -846,8 +904,9 @@ body {
         font-size: 0.62rem;
     }
 
-    /* Override reveal animation target to tighter margin */
+    /* Override reveal animation target to tighter margin + compact max-height */
     .pom-config--visible {
+        max-height: 175px;
         margin-bottom: 0.6rem;
     }
 
