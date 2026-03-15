@@ -300,10 +300,290 @@ body {
 }
 
 /* ======================================
+   POMODORO SWITCH
+====================================== */
+
+.pom-switch {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.75rem;
+}
+
+.pom-switch__icon {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    transition: color 0.3s, text-shadow 0.3s;
+}
+
+.pom-switch__label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--text-secondary);
+    transition: color 0.3s, text-shadow 0.3s;
+    user-select: none;
+}
+
+.pom-switch__label--active,
+.pom-switch--active .pom-switch__icon,
+.pom-switch--active .pom-switch__label {
+    color: var(--neon-pink);
+    text-shadow: 0 0 8px rgba(255, 0, 255, 0.5);
+}
+
+.pom-switch__toggle {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.pom-switch__input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.pom-switch__slider {
+    position: absolute;
+    inset: 0;
+    border-radius: 50px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    transition: all 0.35s ease;
+}
+
+.pom-switch__slider::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    background: var(--text-secondary);
+    transition: all 0.35s ease;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+}
+
+.pom-switch__input:checked + .pom-switch__slider {
+    background: rgba(255, 0, 255, 0.12);
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 14px rgba(255, 0, 255, 0.3), inset 0 0 8px rgba(255, 0, 255, 0.08);
+}
+
+.pom-switch__input:checked + .pom-switch__slider::before {
+    transform: translate(22px, -50%);
+    background: var(--neon-pink);
+    box-shadow: 0 0 10px rgba(255, 0, 255, 0.9);
+}
+
+/* ======================================
+   POMODORO CONFIG
+====================================== */
+
+.pom-config {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    margin-bottom: 0;
+    transition:
+        max-height 0.45s ease,
+        opacity 0.4s ease,
+        margin-bottom 0.4s ease;
+    pointer-events: none;
+}
+
+.pom-config--visible {
+    max-height: 100px;
+    opacity: 1;
+    margin-bottom: 1.25rem;
+    pointer-events: auto;
+}
+
+.pom-config__field {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--glass-bg);
+    border: 1px solid rgba(255, 0, 255, 0.18);
+    border-radius: 10px;
+    padding: 0.4rem 0.7rem;
+    backdrop-filter: blur(10px);
+}
+
+.pom-config__label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: var(--neon-pink);
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.pom-config__input {
+    width: 40px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255, 0, 255, 0.5);
+    color: #fff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: center;
+    outline: none;
+    -moz-appearance: textfield;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pom-config__input::-webkit-inner-spin-button,
+.pom-config__input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+}
+
+.pom-config__unit {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+}
+
+.pom-config__sep {
+    color: rgba(255, 0, 255, 0.4);
+    font-size: 0.7rem;
+}
+
+/* ======================================
+   PRESETS – stato pomodoro
+====================================== */
+
+.presets--pomodoro {
+    opacity: 0.2;
+    pointer-events: none;
+}
+
+/* ======================================
+   PHASE LABEL
+====================================== */
+
+.phase-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    min-height: 1.1rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.4s ease;
+    text-align: center;
+}
+
+.phase-label--work {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+.phase-label--break {
+    color: var(--neon-pink);
+    text-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
+}
+
+/* ======================================
+   TIMER – modificatori fase pausa
+====================================== */
+
+.timer__progress--break {
+    stroke: url(#ringGradientBreak);
+    filter: drop-shadow(0 0 4px rgba(255, 0, 255, 0.9)) drop-shadow(0 0 10px rgba(166, 77, 255, 0.5));
+}
+
+.timer__track--break {
+    stroke: rgba(255, 0, 255, 0.13);
+}
+
+/* ======================================
+   TOMATOES
+====================================== */
+
+.tomatoes {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1.75rem;
+    max-width: 300px;
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition:
+        max-height 0.5s ease,
+        opacity 0.4s ease,
+        margin-top 0.4s ease;
+    pointer-events: none;
+}
+
+.tomatoes--visible {
+    max-height: 160px;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.tomatoes__label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.52rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: rgba(255, 0, 255, 0.5);
+}
+
+.tomatoes__tray {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 2rem;
+}
+
+.tomatoes__item {
+    font-size: 1.35rem;
+    line-height: 1;
+    animation: tomato-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    filter:
+        drop-shadow(0 0 5px rgba(255, 0, 255, 0.8))
+        drop-shadow(0 0 10px rgba(0, 255, 255, 0.35));
+    cursor: default;
+}
+
+@keyframes tomato-pop {
+    from {
+        transform: scale(0) rotate(-25deg);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+/* ======================================
    RESPONSIVE – mobile-first (min-width)
 ====================================== */
 
 @media (min-width: 380px) {
+    .pom-switch__label {
+        font-size: 0.62rem;
+    }
+
     .presets__btn {
         font-size: 0.72rem;
         padding: 0.6rem 0.95rem;
@@ -317,9 +597,21 @@ body {
     .timer__display {
         font-size: 2.5rem;
     }
+
+    .tomatoes__item {
+        font-size: 1.5rem;
+    }
 }
 
 @media (min-width: 480px) {
+    .pom-switch__label {
+        font-size: 0.68rem;
+    }
+
+    .pom-config__label {
+        font-size: 0.6rem;
+    }
+
     .presets {
         gap: 0.75rem;
     }
@@ -343,11 +635,32 @@ body {
         font-size: 0.85rem;
         padding: 0.7rem 1.4rem;
     }
+
+    .tomatoes {
+        max-width: 360px;
+    }
 }
 
 @media (min-width: 768px) {
     .app {
         padding: 2rem;
+    }
+
+    .pom-switch {
+        gap: 0.85rem;
+        margin-bottom: 1rem;
+    }
+
+    .pom-switch__label {
+        font-size: 0.75rem;
+    }
+
+    .pom-switch__icon {
+        font-size: 0.9rem;
+    }
+
+    .pom-config__label {
+        font-size: 0.62rem;
     }
 
     .presets {
@@ -358,6 +671,10 @@ body {
     .presets__btn {
         font-size: 1rem;
         padding: 0.8rem 1.5rem;
+    }
+
+    .phase-label {
+        font-size: 0.72rem;
     }
 
     .timer__ring {
@@ -381,5 +698,13 @@ body {
 
     .toast {
         font-size: 0.875rem;
+    }
+
+    .tomatoes {
+        max-width: 420px;
+    }
+
+    .tomatoes__item {
+        font-size: 1.6rem;
     }
 }

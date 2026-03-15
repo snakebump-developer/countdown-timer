@@ -3,15 +3,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const CIRCUMFERENCE = 2 * Math.PI * 45; // ≈ 282.74 (r=45, viewBox 100×100)
 
     // State
-    let totalSeconds = 300; // Default 5 min
+    let totalSeconds = 300;
     let currentSeconds = totalSeconds;
     let timerId = null;
     let isRunning = false;
     let hasInteracted = false;
 
+    // Pomodoro state
+    let isPomodoroMode = false;
+    let pomPhase = 'work'; // 'work' | 'break'
+    let pomCount = 0;
+
     // Elements
     const timeDisplay = document.getElementById('time-display');
     const presetBtns = document.querySelectorAll('.presets__btn');
+    const presetsHeader = document.getElementById('presets-header');
     const toggleBtn = document.getElementById('toggle-btn');
     const toggleText = document.getElementById('toggle-text');
     const playIcon = document.getElementById('play-icon');
@@ -19,7 +25,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const pauseBtn = document.getElementById('pause-btn');
     const resetBtn = document.getElementById('reset-btn');
     const toast = document.getElementById('toast');
+    const toastSpan = toast.querySelector('span');
     const progressRing = document.getElementById('progress-ring');
+    const progressTrack = document.getElementById('progress-track');
+
+    // Pomodoro elements
+    const pomToggle = document.getElementById('pom-toggle');
+    const pomConfig = document.getElementById('pom-config');
+    const pomWorkInput = document.getElementById('pom-work');
+    const pomBreakInput = document.getElementById('pom-break');
+    const phaseLabel = document.getElementById('phase-label');
+    const tomatoesEl = document.getElementById('tomatoes');
+    const tomatoesTray = document.getElementById('tomatoes-tray');
+    const pomSwitchEl = document.querySelector('.pom-switch');
 
     // Init
     updateDisplay();
@@ -81,6 +99,99 @@ document.addEventListener('DOMContentLoaded', () => {
         const elapsed = totalSeconds - currentSeconds;
         const fraction = totalSeconds > 0 ? elapsed / totalSeconds : 0;
         progressRing.style.strokeDashoffset = CIRCUMFERENCE * (1 - fraction);
+    }
+
+    // ── Pomodoro helpers ──────────────────────────────────────────
+
+    function getPomWorkSec() {
+        return Math.max(1, parseInt(pomWorkInput.value, 10) || 25) * 60;
+    }
+
+    function getPomBreakSec() {
+        return Math.max(1, parseInt(pomBreakInput.value, 10) || 5) * 60;
+    }
+
+    function updatePhaseLabel() {
+        phaseLabel.className = 'phase-label';
+        if (!isPomodoroMode) { phaseLabel.textContent = ''; return; }
+        if (pomPhase === 'work') {
+            phaseLabel.textContent = '— FOCUS —';
+            phaseLabel.classList.add('phase-label--work');
+        } else {
+            phaseLabel.textContent = '— BREAK —';
+            phaseLabel.classList.add('phase-label--break');
+        }
+    }
+
+    function updateRingTheme() {
+        if (isPomodoroMode && pomPhase === 'break') {
+            progressRing.classList.add('timer__progress--break');
+            progressTrack.classList.add('timer__track--break');
+        } else {
+            progressRing.classList.remove('timer__progress--break');
+            progressTrack.classList.remove('timer__track--break');
+        }
+    }
+
+    function addTomato() {
+        pomCount++;
+        const item = document.createElement('span');
+        item.className = 'tomatoes__item';
+        item.textContent = '🍅';
+        item.setAttribute('title', `Pomodoro #${pomCount}`);
+        tomatoesTray.appendChild(item);
+    }
+
+    // Blocca il click sul display durante la modalità pomodoro
+    function blockDisplayEdit(e) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+    }
+
+    function enterPomodoroMode() {
+        isPomodoroMode = true;
+        pomPhase = 'work';
+        pomCount = 0;
+        tomatoesTray.innerHTML = '';
+
+        stopTimer();
+        totalSeconds = getPomWorkSec();
+        currentSeconds = totalSeconds;
+        updateDisplay();
+        updatePhaseLabel();
+        updateRingTheme();
+
+        pomConfig.classList.add('pom-config--visible');
+        pomConfig.removeAttribute('aria-hidden');
+        tomatoesEl.classList.add('tomatoes--visible');
+        tomatoesEl.removeAttribute('aria-hidden');
+        pomSwitchEl.classList.add('pom-switch--active');
+
+        presetsHeader.classList.add('presets--pomodoro');
+        timeDisplay.contentEditable = 'false';
+        timeDisplay.addEventListener('click', blockDisplayEdit, true);
+    }
+
+    function exitPomodoroMode() {
+        isPomodoroMode = false;
+        stopTimer();
+
+        pomConfig.classList.remove('pom-config--visible');
+        pomConfig.setAttribute('aria-hidden', 'true');
+        tomatoesEl.classList.remove('tomatoes--visible');
+        tomatoesEl.setAttribute('aria-hidden', 'true');
+        pomSwitchEl.classList.remove('pom-switch--active');
+
+        updatePhaseLabel();
+        updateRingTheme();
+
+        presetsHeader.classList.remove('presets--pomodoro');
+        timeDisplay.removeEventListener('click', blockDisplayEdit, true);
+
+        totalSeconds = 300;
+        currentSeconds = totalSeconds;
+        updateDisplay();
+        presetBtns.forEach(b => b.classList.remove('presets__btn--active'));
     }
 
     // Helper: format time for display
@@ -189,20 +300,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle timer completion
     function timerComplete() {
-        // Sound
         playAlarm();
 
-        // Browser Notification
-        if (Notification.permission === 'granted') {
-            new Notification("Timer Completato!", {
-                body: "Il conto alla rovescia è terminato.",
-                icon: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏰</text></svg>"
-            });
-        }
+        if (isPomodoroMode) {
+            if (pomPhase === 'work') {
+                addTomato();
 
-        // In-app Toast
-        toast.classList.add('toast--visible');
-        setTimeout(() => toast.classList.remove('toast--visible'), 5000);
+                if (Notification.permission === 'granted') {
+                    new Notification(`🍅 Sessione focus #${pomCount} completata!`, {
+                        body: `Prenditi una pausa di ${pomBreakInput.value} minuti.`
+                    });
+                }
+
+                pomPhase = 'break';
+                totalSeconds = getPomBreakSec();
+                currentSeconds = totalSeconds;
+                updatePhaseLabel();
+                updateRingTheme();
+                updateDisplay();
+                toastSpan.textContent = `🍅  +1 pomodoro! Pausa di ${pomBreakInput.value} min in arrivo…`;
+            } else {
+                if (Notification.permission === 'granted') {
+                    new Notification('⚡ Break terminato! Nuova sessione focus.', {
+                        body: `Pomodori completati: ${pomCount}`
+                    });
+                }
+
+                pomPhase = 'work';
+                totalSeconds = getPomWorkSec();
+                currentSeconds = totalSeconds;
+                updatePhaseLabel();
+                updateRingTheme();
+                updateDisplay();
+                toastSpan.textContent = '⚡  Break terminato! Nuova sessione focus.';
+            }
+
+            toast.classList.add('toast--visible');
+            setTimeout(() => {
+                toast.classList.remove('toast--visible');
+                startTimer();
+            }, 3000);
+
+        } else {
+            if (Notification.permission === 'granted') {
+                new Notification('Timer Completato!', {
+                    body: 'Il conto alla rovescia è terminato.',
+                    icon: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏰</text></svg>"
+                });
+            }
+
+            toastSpan.textContent = 'Timer Completato!';
+            toast.classList.add('toast--visible');
+            setTimeout(() => toast.classList.remove('toast--visible'), 5000);
+        }
     }
 
     // Permissions
@@ -264,6 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     timeDisplay.addEventListener('blur', () => {
         timeDisplay.contentEditable = "false";
+        if (isPomodoroMode) return;
         const input = timeDisplay.textContent || "0";
         const newSec = parseTimeInput(input);
 
@@ -297,7 +448,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     resetBtn.addEventListener('mousedown', () => {
         requestPermissions();
-        playPause(); // Sound for reset
+        playPause();
         resetTimer();
+    });
+
+    // Pomodoro toggle
+    pomToggle.addEventListener('change', () => {
+        if (pomToggle.checked) {
+            enterPomodoroMode();
+        } else {
+            exitPomodoroMode();
+        }
     });
 });

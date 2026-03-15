@@ -15,7 +15,37 @@
 
 <body>
     <div class="app">
-        <header class="presets">
+
+        <!-- ── Pomodoro switch ── -->
+        <div class="pom-switch">
+            <i class="pom-switch__icon fa-solid fa-fire-flame-curved"></i>
+            <span class="pom-switch__label" id="pom-label">POMODORO CHALLENGE</span>
+            <label class="pom-switch__toggle" aria-label="Attiva Pomodoro Challenge">
+                <input type="checkbox" id="pom-toggle" class="pom-switch__input">
+                <span class="pom-switch__slider"></span>
+            </label>
+        </div>
+
+        <!-- ── Pomodoro config (si rivela allo switch) ── -->
+        <div class="pom-config" id="pom-config" aria-hidden="true">
+            <div class="pom-config__field">
+                <label class="pom-config__label" for="pom-work">
+                    <i class="fa-solid fa-brain"></i> FOCUS
+                </label>
+                <input type="number" id="pom-work" class="pom-config__input" value="25" min="1" max="120">
+                <span class="pom-config__unit">min</span>
+            </div>
+            <span class="pom-config__sep"><i class="fa-solid fa-right-left"></i></span>
+            <div class="pom-config__field">
+                <label class="pom-config__label" for="pom-break">
+                    <i class="fa-solid fa-mug-hot"></i> BREAK
+                </label>
+                <input type="number" id="pom-break" class="pom-config__input" value="5" min="1" max="60">
+                <span class="pom-config__unit">min</span>
+            </div>
+        </div>
+
+        <header class="presets" id="presets-header">
             <button class="presets__btn" data-time="300">5 MIN</button>
             <button class="presets__btn" data-time="900">15 MIN</button>
             <button class="presets__btn" data-time="1800">30 MIN</button>
@@ -23,6 +53,9 @@
         </header>
 
         <main class="timer">
+            <!-- Etichetta fase (solo in modalità pomodoro) -->
+            <div class="phase-label" id="phase-label" aria-live="polite"></div>
+
             <div class="timer__ring">
                 <svg class="timer__svg" viewBox="0 0 100 100" aria-hidden="true">
                     <defs>
@@ -30,8 +63,12 @@
                             <stop offset="0%" stop-color="#0ff" />
                             <stop offset="100%" stop-color="#f0f" />
                         </linearGradient>
+                        <linearGradient id="ringGradientBreak" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#f0f" />
+                            <stop offset="100%" stop-color="#a64dff" />
+                        </linearGradient>
                     </defs>
-                    <circle class="timer__track" cx="50" cy="50" r="45" />
+                    <circle class="timer__track" id="progress-track" cx="50" cy="50" r="45" />
                     <circle class="timer__progress" cx="50" cy="50" r="45" id="progress-ring" />
                 </svg>
                 <div id="time-display" class="timer__display" contenteditable="false" spellcheck="false"
@@ -54,6 +91,12 @@
                     <i class="fa-solid fa-rotate-right"></i>
                     <span>RESET</span>
                 </button>
+            </div>
+
+            <!-- Raccolta pomodori (visibile solo in modalità pomodoro) -->
+            <div class="tomatoes" id="tomatoes" role="region" aria-label="Pomodori completati" aria-hidden="true">
+                <span class="tomatoes__label">POMODORI RACCOLTI</span>
+                <div class="tomatoes__tray" id="tomatoes-tray"></div>
             </div>
         </main>
 
