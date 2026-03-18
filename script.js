@@ -578,8 +578,26 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── Service Worker (PWA) ─────────────────────────────────────────
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker
-            .register('./sw.js')
-            .catch(() => { /* SW non disponibile in questo ambiente */ });
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+            // Quando viene trovato un nuovo SW, aspetta che sia attivo
+            reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                newWorker.addEventListener('statechange', () => {
+                    // Nuovo SW attivato: ricarica la pagina per usare i nuovi asset
+                    if (newWorker.state === 'activated') {
+                        window.location.reload();
+                    }
+                });
+            });
+        }).catch(() => { /* SW non disponibile in questo ambiente */ });
+
+        // Sicurezza aggiuntiva: se il controller cambia (nuovo SW), ricarica
+        let reloading = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!reloading) {
+                reloading = true;
+                window.location.reload();
+            }
+        });
     });
 }
