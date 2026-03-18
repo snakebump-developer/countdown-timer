@@ -12,11 +12,7 @@ import {
     doc,
     getDoc,
     setDoc,
-    addDoc,
-    getDocs,
-    deleteDoc,
-    collection,
-    writeBatch,
+    arrayUnion,
     increment,
     serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js';
@@ -233,55 +229,53 @@ async function loadUserStats(uid) {
 }
 
 // ── Firestore: salva un pomodoro (chiamato da script.js) ──────
+// La cronologia viene salvata come array nel documento utente (non subcollection)
+// così funziona con le Security Rules standard su users/{uid}.
 window.savePomodoro = async function savePomodoro() {
     const user = auth.currentUser;
     if (!user) return;
     try {
         const ref = doc(db, 'users', user.uid);
+        // Usa Date.now() per il timestamp nell'array (serverTimestamp() non è supportato dentro arrayUnion)
         await setDoc(ref, {
             totalPomodoros: increment(1),
             lastSession:    serverTimestamp(),
+            history:        arrayUnion({ ts: Date.now() }),
         }, { merge: true });
         authCountEl.textContent = (parseInt(authCountEl.textContent, 10) || 0) + 1;
-        // Salva anche nella subcollection history con il timestamp
-        await addDoc(collection(db, 'users', user.uid, 'history'), {
-            ts: serverTimestamp(),
-        });
     } catch {
         // Salvataggio non disponibile (es. offline): il contatore locale rimane invariato
     }
 };
 
 // ── Firestore: sincronizza cronologia al login ─────────────────
+// Legge il campo 'history' dal documento utente e fa merge con localStorage.
 async function syncHistory(uid) {
     try {
-        const snap = await getDocs(collection(db, 'users', uid, 'history'));
-        if (snap.empty) return;
+        const snap = await getDoc(doc(db, 'users', uid));
+        const cloudHistory = snap.data()?.history ?? [];
+        if (!cloudHistory.length) return;
 
         const HISTORY_KEY = 'pom_history';
         const HISTORY_MAX = 500;
         const local = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
 
-        // Costruisce un Set dei timestamp locali (arrotondati al secondo) per evitare duplicati
+        // Deduplicazione per timestamp arrotondato al secondo
         const localTsSet = new Set(local.map(e => Math.round(e.ts / 1000)));
-
-        snap.forEach(d => {
-            const data = d.data();
-            const ms = data.ts?.toMillis ? data.ts.toMillis() : (data.ts || null);
-            if (!ms) return;
-            const sec = Math.round(ms / 1000);
+        cloudHistory.forEach(entry => {
+            if (!entry.ts) return;
+            const sec = Math.round(entry.ts / 1000);
             if (!localTsSet.has(sec)) {
-                local.push({ ts: ms });
+                local.push({ ts: entry.ts });
                 localTsSet.add(sec);
             }
         });
 
-        // Ordina per timestamp e tronca al massimo
         local.sort((a, b) => a.ts - b.ts);
         if (local.length > HISTORY_MAX) local.splice(0, local.length - HISTORY_MAX);
         localStorage.setItem(HISTORY_KEY, JSON.stringify(local));
 
-        // Notifica script.js di aggiornare la visibilità del pulsante STORICO
+        // Aggiorna visibilità pulsante STORICO in script.js
         window.updateHistoryBtnVisibility?.();
     } catch {
         // Sync non disponibile (offline): si usa solo la versione locale
@@ -293,11 +287,7 @@ window.clearFirestoreHistory = async function clearFirestoreHistory() {
     const user = auth.currentUser;
     if (!user) return;
     try {
-        const snap = await getDocs(collection(db, 'users', user.uid, 'history'));
-        if (snap.empty) return;
-        const batch = writeBatch(db);
-        snap.forEach(d => batch.delete(d.ref));
-        await batch.commit();
+        await setDoc(doc(db, 'users', user.uid), { history: [] }, { merge: true });
     } catch {
         // Pulizia non disponibile (offline): solo locale sarà cancellato
     }
