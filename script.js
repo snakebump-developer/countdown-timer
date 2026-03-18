@@ -218,6 +218,9 @@ document.addEventListener('DOMContentLoaded', () => {
         histBody.innerHTML = html;
     }
 
+    // Espone updateHistoryBtnVisibility per auth.js (post-sync al login)
+    window.updateHistoryBtnVisibility = updateHistoryBtnVisibility;
+
     // History event listeners
     histBtn.addEventListener('click', openHistory);
     histCloseBtn.addEventListener('click', closeHistory);
@@ -225,6 +228,8 @@ document.addEventListener('DOMContentLoaded', () => {
     histClearBtn.addEventListener('click', () => {
         localStorage.removeItem(HISTORY_KEY);
         updateHistoryBtnVisibility();
+        // Cancella anche da Firestore se loggato
+        window.clearFirestoreHistory?.();
         closeHistory();
     });
     document.addEventListener('keydown', (e) => {

@@ -29,7 +29,17 @@ PENDING TASKS:
 
 COMPLETED TASKS:
 
-1. ✅ [2026-03-18] Migliorato l'aggiornamento PWA su iPhone:
+1. ✅ [2026-03-18] Migliorato l'aggiornamento PWA su iPhone.
+
+2. ✅ [2026-03-18] Implementata cronologia pomodori (localStorage, offline-first).
+
+3. ✅ [2026-03-18] Cronologia sincronizzata con Firestore per utenti loggati:
+   - auth.js: import aggiuntivi addDoc, getDocs, deleteDoc, collection, writeBatch.
+   - window.savePomodoro: ora salva anche { ts: serverTimestamp() } nella subcollection users/{uid}/history.
+   - syncHistory(uid): al login scarica tutti i doc della subcollection, merge con localStorage
+     (deduplicazione per timestamp arrotondato al secondo), aggiorna il pulsante STORICO via window.updateHistoryBtnVisibility?.().
+   - window.clearFirestoreHistory: cancella in batch tutti i doc di users/{uid}/history (chiamato da SVUOTA TUTTO).
+   - script.js: espone window.updateHistoryBtnVisibility; il bottone SVUOTA TUTTO chiama anche window.clearFirestoreHistory?.().
    - sw.js: aggiunto BUILD_VERSION (es. '2026-03-18.1') e CACHE_NAME aggiornato v3-<version>.
      Per ogni nuovo deploy aggiornare SOLO la costante BUILD_VERSION.
    - sw.js: rimosso skipWaiting() automatico — ora l'attivazione è controllata dall'utente.

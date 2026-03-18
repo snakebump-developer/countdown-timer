@@ -12,6 +12,11 @@ import {
     doc,
     getDoc,
     setDoc,
+    addDoc,
+    getDocs,
+    deleteDoc,
+    collection,
+    writeBatch,
     increment,
     serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js';
@@ -238,8 +243,63 @@ window.savePomodoro = async function savePomodoro() {
             lastSession:    serverTimestamp(),
         }, { merge: true });
         authCountEl.textContent = (parseInt(authCountEl.textContent, 10) || 0) + 1;
+        // Salva anche nella subcollection history con il timestamp
+        await addDoc(collection(db, 'users', user.uid, 'history'), {
+            ts: serverTimestamp(),
+        });
     } catch {
         // Salvataggio non disponibile (es. offline): il contatore locale rimane invariato
+    }
+};
+
+// ── Firestore: sincronizza cronologia al login ─────────────────
+async function syncHistory(uid) {
+    try {
+        const snap = await getDocs(collection(db, 'users', uid, 'history'));
+        if (snap.empty) return;
+
+        const HISTORY_KEY = 'pom_history';
+        const HISTORY_MAX = 500;
+        const local = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+
+        // Costruisce un Set dei timestamp locali (arrotondati al secondo) per evitare duplicati
+        const localTsSet = new Set(local.map(e => Math.round(e.ts / 1000)));
+
+        snap.forEach(d => {
+            const data = d.data();
+            const ms = data.ts?.toMillis ? data.ts.toMillis() : (data.ts || null);
+            if (!ms) return;
+            const sec = Math.round(ms / 1000);
+            if (!localTsSet.has(sec)) {
+                local.push({ ts: ms });
+                localTsSet.add(sec);
+            }
+        });
+
+        // Ordina per timestamp e tronca al massimo
+        local.sort((a, b) => a.ts - b.ts);
+        if (local.length > HISTORY_MAX) local.splice(0, local.length - HISTORY_MAX);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(local));
+
+        // Notifica script.js di aggiornare la visibilità del pulsante STORICO
+        window.updateHistoryBtnVisibility?.();
+    } catch {
+        // Sync non disponibile (offline): si usa solo la versione locale
+    }
+}
+
+// ── Firestore: svuota cronologia (chiamato da script.js) ──────
+window.clearFirestoreHistory = async function clearFirestoreHistory() {
+    const user = auth.currentUser;
+    if (!user) return;
+    try {
+        const snap = await getDocs(collection(db, 'users', user.uid, 'history'));
+        if (snap.empty) return;
+        const batch = writeBatch(db);
+        snap.forEach(d => batch.delete(d.ref));
+        await batch.commit();
+    } catch {
+        // Pulizia non disponibile (offline): solo locale sarà cancellato
     }
 };
 
@@ -254,6 +314,8 @@ onAuthStateChanged(auth, async (user) => {
         authUserEl.hidden  = false;
         authEmailEl.textContent = user.email;
         await loadUserStats(user.uid);
+        // Sincronizza cronologia da Firestore → localStorage
+        await syncHistory(user.uid);
         // Mostra snack solo su login/registrazione attivi, non su ripristino sessione
         if (!isFirstAuthCheck) {
             if (justRegistered) {
