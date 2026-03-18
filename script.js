@@ -162,6 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
         item.textContent = '🍅';
         item.setAttribute('title', `Pomodoro #${pomCount}`);
         tomatoesTray.appendChild(item);
+        // Salva su Firestore se l'utente è autenticato
+        window.savePomodoro?.();
     }
 
     // Blocca il click sul display durante la modalità pomodoro
@@ -542,6 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Keyboard shortcuts: Space → start, P → pausa, R → reset
     document.addEventListener('keydown', (e) => {
+        if (typeof window.isAuthModalOpen === 'function' && window.isAuthModalOpen()) return;
         const tag = document.activeElement.tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement === timeDisplay) return;
 

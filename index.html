@@ -27,6 +27,24 @@
 <body>
     <div class="app">
 
+        <!-- ── Auth bar ── -->
+        <div class="auth-bar">
+            <button class="auth-bar__btn" id="auth-open-btn" aria-label="Accedi o registrati">
+                <i class="fa-solid fa-user-astronaut"></i>
+                <span>ACCEDI</span>
+            </button>
+            <div class="auth-bar__user" id="auth-user" hidden>
+                <span class="auth-bar__pomodoros" title="Pomodori totali raccolti">
+                    <i class="fa-solid fa-seedling"></i>
+                    <span id="auth-total-count">0</span>
+                </span>
+                <span class="auth-bar__email" id="auth-email"></span>
+                <button class="auth-bar__logout" id="auth-logout-btn" aria-label="Esci dall'account">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </div>
+
         <!-- ── Pomodoro switch ── -->
         <div class="pom-switch">
             <i class="pom-switch__icon fa-solid fa-fire-flame-curved"></i>
@@ -154,6 +172,69 @@
             </div>
         </main>
 
+        <!-- ── Auth modal ── -->
+        <div class="auth-modal" id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" hidden>
+            <div class="auth-modal__backdrop" id="auth-backdrop"></div>
+            <div class="auth-modal__panel">
+                <button class="auth-modal__close" id="auth-close-btn" aria-label="Chiudi">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <h2 class="auth-modal__title" id="auth-modal-title">
+                    <i class="fa-solid fa-fire-flame-curved"></i> POMODORO TIMER
+                </h2>
+                <div class="auth-modal__tabs" role="tablist" aria-label="Modalità autenticazione">
+                    <button class="auth-modal__tab auth-modal__tab--active" id="tab-login" role="tab"
+                        aria-selected="true" aria-controls="panel-login">ACCEDI</button>
+                    <button class="auth-modal__tab" id="tab-register" role="tab"
+                        aria-selected="false" aria-controls="panel-register">REGISTRATI</button>
+                </div>
+
+                <!-- Login -->
+                <div class="auth-modal__body" id="panel-login" role="tabpanel" aria-labelledby="tab-login">
+                    <div class="auth-modal__field">
+                        <label class="auth-modal__label" for="login-email">
+                            <i class="fa-solid fa-envelope"></i> EMAIL
+                        </label>
+                        <input type="email" id="login-email" class="auth-modal__input"
+                            autocomplete="email" placeholder="utente@email.com">
+                    </div>
+                    <div class="auth-modal__field">
+                        <label class="auth-modal__label" for="login-password">
+                            <i class="fa-solid fa-lock"></i> PASSWORD
+                        </label>
+                        <input type="password" id="login-password" class="auth-modal__input"
+                            autocomplete="current-password" placeholder="••••••••">
+                    </div>
+                    <p class="auth-modal__error" id="login-error" aria-live="polite" role="alert"></p>
+                    <button class="auth-modal__submit" id="login-submit">
+                        <i class="fa-solid fa-right-to-bracket"></i> ACCEDI
+                    </button>
+                </div>
+
+                <!-- Registrazione -->
+                <div class="auth-modal__body" id="panel-register" role="tabpanel" aria-labelledby="tab-register" hidden>
+                    <div class="auth-modal__field">
+                        <label class="auth-modal__label" for="reg-email">
+                            <i class="fa-solid fa-envelope"></i> EMAIL
+                        </label>
+                        <input type="email" id="reg-email" class="auth-modal__input"
+                            autocomplete="email" placeholder="utente@email.com">
+                    </div>
+                    <div class="auth-modal__field">
+                        <label class="auth-modal__label" for="reg-password">
+                            <i class="fa-solid fa-lock"></i> PASSWORD
+                        </label>
+                        <input type="password" id="reg-password" class="auth-modal__input"
+                            autocomplete="new-password" placeholder="min 6 caratteri">
+                    </div>
+                    <p class="auth-modal__error" id="reg-error" aria-live="polite" role="alert"></p>
+                    <button class="auth-modal__submit" id="reg-submit">
+                        <i class="fa-solid fa-user-plus"></i> CREA ACCOUNT
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="toast" id="toast">
             <i class="fa-solid fa-bell"></i>
             <span>Timer Completato!</span>
@@ -161,6 +242,7 @@
     </div>
 
     <script src="script.js"></script>
+    <script type="module" src="auth.js"></script>
 </body>
 
 </html>
