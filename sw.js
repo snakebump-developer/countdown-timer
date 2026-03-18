@@ -1,4 +1,6 @@
-const CACHE_NAME = 'futuristic-timer-v2';
+// ── Versione build: aggiornare ad ogni deploy (YYYY-MM-DD.N) ────
+const BUILD_VERSION = '2026-03-18.1';
+const CACHE_NAME = `futuristic-timer-v3-${BUILD_VERSION}`;
 
 // Asset statici da precachare (aggiornaci la versione ad ogni deploy)
 const LOCAL_ASSETS = [
@@ -11,15 +13,24 @@ const LOCAL_ASSETS = [
     './icon-maskable.svg'
 ];
 
-// ── Install: precache asset statici (NON l'HTML, sarà sempre network-first) ──
+// ── Install: precache asset statici, NON chiamare skipWaiting automaticamente ──
+// L'attivazione è controllata dall'utente tramite il banner di aggiornamento
 self.addEventListener('install', (e) => {
     e.waitUntil(
         caches.open(CACHE_NAME).then(cache => cache.addAll(LOCAL_ASSETS))
     );
-    self.skipWaiting(); // Attiva subito il nuovo SW senza aspettare la chiusura delle tab
+    // NON chiamiamo skipWaiting qui: il client mostrerà un banner
+    // e chiamerà skipWaiting solo quando l'utente lo conferma (o il timer è fermo)
 });
 
-// ── Activate: rimuove cache vecchie e prende il controllo ────────
+// ── Messaggio dal client: SKIP_WAITING → attiva il nuovo SW ─────
+self.addEventListener('message', (e) => {
+    if (e.data === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+});
+
+// ── Activate: rimuove cache vecchie, prende il controllo e notifica versione ──
 self.addEventListener('activate', (e) => {
     e.waitUntil(
         caches.keys().then(keys =>
@@ -29,6 +40,13 @@ self.addEventListener('activate', (e) => {
                     .map(k => caches.delete(k))
             )
         ).then(() => self.clients.claim()) // Prende il controllo di tutte le tab aperte
+         .then(() => {
+             // Notifica tutti i client aperti con la versione attiva
+             return self.clients.matchAll({ includeUncontrolled: true, type: 'window' })
+                 .then(clients => {
+                     clients.forEach(c => c.postMessage({ type: 'SW_VERSION', version: BUILD_VERSION }));
+                 });
+         })
     );
 });
 

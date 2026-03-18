@@ -25,10 +25,27 @@ requestPermissions(): Gestisce sblocco Audio e Notifiche al primo clic.
 
 PENDING TASKS:
 
-1. migliorare la barra auth per dispositivi mobile, meglio spostarla con un allineamento centrale e migliorarne la UI e UX, sembra anche troppo attaccata al resto della pagina meglio distanziarla un po verticalmente ma mantenendo tutto dentro la viewport per evitare scroll inutili.
-2. il pomodoro svg non lo riesco a visualizzare su iphone.
-3. il totalizzatore non ha l'icona e il testo in linea.
-4. perchè nello screenshot che un icona di freccia bianco in basso ma che non compare su browser?
+Nessuna task in sospeso.
+
+COMPLETED TASKS:
+
+1. ✅ [2026-03-18] Migliorato l'aggiornamento PWA su iPhone:
+   - sw.js: aggiunto BUILD_VERSION (es. '2026-03-18.1') e CACHE_NAME aggiornato v3-<version>.
+     Per ogni nuovo deploy aggiornare SOLO la costante BUILD_VERSION.
+   - sw.js: rimosso skipWaiting() automatico — ora l'attivazione è controllata dall'utente.
+   - sw.js: aggiunto listener 'message' → SKIP_WAITING; on activate → postMessage SW_VERSION a tutti i client.
+   - index.html: aggiunto banner #update-banner con bottone "AGGIORNA" e dismiss "×".
+   - style.css: stilizzato .update-banner (arancio neon, bottom 5rem, animazione slide-up).
+   - script.js: logica SW completamente riscritta:
+       • Su SW_VERSION message → console.info con build number (per il developer).
+       • Su updatefound + state 'installed' + controller presente → mostra banner.
+       • Su visibilitychange (ritorno foreground iOS) → reg.update() + check reg.waiting.
+       • Polling ogni 30 min con reg.update() per sessioni lunghe.
+       • "AGGIORNA" → postMessage SKIP_WAITING → controllerchange → reload.
+       • "×" → nascondi banner (il SW rimane in attesa per il prossimo reload).
+
+IN THE END:
+Eseguire sempre il browser integrato sul link: https://countdown-timer-red-nu.vercel.app/
 
 CONSTRAINTS:
 

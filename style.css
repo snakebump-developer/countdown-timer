@@ -1485,3 +1485,85 @@ body {
 .auth-snack__icon {
     font-size: 0.75rem;
 }
+
+/* ======================================
+   PWA UPDATE BANNER
+====================================== */
+
+.update-banner {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1rem 0.7rem 1.2rem;
+    border-radius: 50px;
+    background: rgba(255, 165, 0, 0.1);
+    border: 1px solid rgba(255, 165, 0, 0.4);
+    box-shadow: 0 0 24px rgba(255, 165, 0, 0.2), 0 8px 32px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    color: #ffaa33;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 200;
+}
+
+.update-banner:not([hidden]) {
+    bottom: 5rem;
+}
+
+.update-banner__icon {
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.update-banner__text {
+    flex: 1;
+}
+
+.update-banner__btn {
+    background: rgba(255, 165, 0, 0.25);
+    border: 1px solid rgba(255, 165, 0, 0.5);
+    color: #ffaa33;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 0.35rem 0.85rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+}
+
+.update-banner__btn:hover,
+.update-banner__btn:focus-visible {
+    background: rgba(255, 165, 0, 0.4);
+    box-shadow: 0 0 12px rgba(255, 165, 0, 0.3);
+    outline: none;
+}
+
+.update-banner__dismiss {
+    background: transparent;
+    border: none;
+    color: rgba(255, 165, 0, 0.5);
+    cursor: pointer;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.75rem;
+    line-height: 1;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.update-banner__dismiss:hover,
+.update-banner__dismiss:focus-visible {
+    color: #ffaa33;
+    outline: none;
+}

@@ -577,25 +577,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── Service Worker (PWA) ─────────────────────────────────────────
 if ('serviceWorker' in navigator) {
+    // ── Elementi banner aggiornamento ──────────────────────────
+    const updateBanner   = document.getElementById('update-banner');
+    const updateApplyBtn = document.getElementById('update-apply-btn');
+    const updateDismiss  = document.getElementById('update-dismiss-btn');
+    let pendingWorker    = null; // SW in attesa di attivazione
+
+    function showUpdateBanner(worker) {
+        pendingWorker = worker;
+        updateBanner.hidden = false;
+    }
+
+    function hideUpdateBanner() {
+        updateBanner.hidden = true;
+        pendingWorker = null;
+    }
+
+    // "AGGIORNA" → invia skip al SW in attesa → controllerchange → reload
+    updateApplyBtn.addEventListener('click', () => {
+        if (pendingWorker) {
+            pendingWorker.postMessage('SKIP_WAITING');
+        }
+    });
+
+    // "×" → l'utente rimanda: il banner sparisce ma al prossimo caricamento
+    //       il SW in attesa sarà ancora lì e verrà di nuovo proposto
+    updateDismiss.addEventListener('click', hideUpdateBanner);
+
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').then(reg => {
-            // Quando viene trovato un nuovo SW, aspetta che sia attivo
+
+            // ── Versione attiva loggata in console per il developer ──
+            navigator.serviceWorker.addEventListener('message', (e) => {
+                if (e.data?.type === 'SW_VERSION') {
+                    console.info(`[PWA] 🟢 Service Worker attivo  •  build ${e.data.version}`);
+                }
+            });
+
+            // ── Nuovo SW trovato: mostra banner quando entra in "installed" ──
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
                 newWorker.addEventListener('statechange', () => {
-                    // Nuovo SW attivato: ricarica la pagina per usare i nuovi asset
-                    if (newWorker.state === 'activated') {
-                        window.location.reload();
+                    // 'installed' + controller esistente = update in attesa (non prima installazione)
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        console.info('[PWA] 🟡 Aggiornamento disponibile — mostra banner');
+                        showUpdateBanner(newWorker);
                     }
                 });
             });
+
+            // ── iOS fix: controlla se c'è già un SW in attesa al ritorno in foreground ──
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    reg.update().catch(() => {}); // forza ricontrollo su Vercel
+                    if (reg.waiting && navigator.serviceWorker.controller) {
+                        showUpdateBanner(reg.waiting);
+                    }
+                }
+            });
+
+            // ── Controllo periodico ogni 30 min (sessioni lunghe) ──────
+            setInterval(() => reg.update().catch(() => {}), 30 * 60 * 1000);
+
         }).catch(() => { /* SW non disponibile in questo ambiente */ });
 
-        // Sicurezza aggiuntiva: se il controller cambia (nuovo SW), ricarica
+        // ── Controller cambiato → il nuovo SW è attivo → ricarica ───
         let reloading = false;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (!reloading) {
                 reloading = true;
+                hideUpdateBanner();
                 window.location.reload();
             }
         });
