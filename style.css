@@ -1060,9 +1060,9 @@ body {
 
 .auth-bar__pom-label {
     font-family: 'Orbitron', sans-serif;
-    font-size: 0.42rem;
+    font-size: 0.48rem;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.2px;
     color: rgba(255, 0, 255, 0.55);
     text-transform: uppercase;
     line-height: 1;
@@ -1102,6 +1102,40 @@ body {
     border-color: var(--neon-pink);
     color: var(--neon-pink);
     box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+}
+
+/* ── Auth bar responsive ─────────────────────────────────── */
+
+/* Schermi molto piccoli (<375px): nascondi email per evitare overflow */
+@media (max-width: 374px) {
+    .auth-bar__user {
+        gap: 0.4rem;
+    }
+
+    .auth-bar__email {
+        display: none;
+    }
+
+    .auth-bar__pomodoros {
+        padding: 0.25rem 0.5rem;
+        gap: 0.25rem;
+    }
+
+    .auth-bar__pom-label {
+        display: none;
+    }
+}
+
+/* Mobile standard (375px – 479px): email compatta, gap ridotto */
+@media (min-width: 375px) and (max-width: 479px) {
+    .auth-bar__user {
+        gap: 0.5rem;
+    }
+
+    .auth-bar__email {
+        max-width: 90px;
+        font-size: 0.58rem;
+    }
 }
 
 /* ======================================
