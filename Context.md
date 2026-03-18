@@ -25,11 +25,34 @@ requestPermissions(): Gestisce sblocco Audio e Notifiche al primo clic.
 
 PENDING TASKS:
 
-Nessuna task in sospeso.
+(Nessun task in attesa)
 
 COMPLETED TASKS:
 
 1. ✅ [2026-03-18] Migliorato l'aggiornamento PWA su iPhone:
+   - sw.js: aggiunto BUILD_VERSION (es. '2026-03-18.1') e CACHE_NAME aggiornato v3-<version>.
+     Per ogni nuovo deploy aggiornare SOLO la costante BUILD_VERSION.
+   - sw.js: rimosso skipWaiting() automatico — ora l'attivazione è controllata dall'utente.
+   - sw.js: aggiunto listener 'message' → SKIP_WAITING; on activate → postMessage SW_VERSION a tutti i client.
+   - index.html: aggiunto banner #update-banner con bottone "AGGIORNA" e dismiss "×".
+   - style.css: stilizzato .update-banner (arancio neon, bottom 5rem, animazione slide-up).
+   - script.js: logica SW completamente riscritta:
+       • Su SW_VERSION message → console.info con build number (per il developer).
+       • Su updatefound + state 'installed' + controller presente → mostra banner.
+       • Su visibilitychange (ritorno foreground iOS) → reg.update() + check reg.waiting.
+       • Polling ogni 30 min con reg.update() per sessioni lunghe.
+       • "AGGIORNA" → postMessage SKIP_WAITING → controllerchange → reload.
+       • "×" → nascondi banner (il SW rimane in attesa per il prossimo reload).
+
+2. ✅ [2026-03-18] Implementata cronologia pomodori guadagnati:
+   - localStorage key: 'pom_history' — array di {ts: timestamp}, max 500 voci.
+   - script.js: funzioni savePomodoroToHistory(), getHistory(), renderHistory(),
+     updateHistoryBtnVisibility(); addTomato() ora salva ogni pomodoro nello storico.
+   - index.html: pulsante "STORICO" (clock-rotate-left) visibile solo se esiste storico;
+     panel/modal bottom-sheet con backdrop, header, body scrollabile, footer con "SVUOTA TUTTO".
+   - style.css: stili .pom-hist* — bottom-sheet su mobile, modale centrato su ≥480px,
+     animazione slide-up, raggruppamento per giorno (OGGI / IERI / data), badge orari.
+   - La cronologia è locale (offline-first), accessibile a utenti loggati e anonimi.
    - sw.js: aggiunto BUILD_VERSION (es. '2026-03-18.1') e CACHE_NAME aggiornato v3-<version>.
      Per ogni nuovo deploy aggiornare SOLO la costante BUILD_VERSION.
    - sw.js: rimosso skipWaiting() automatico — ora l'attivazione è controllata dall'utente.

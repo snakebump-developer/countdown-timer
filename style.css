@@ -1567,3 +1567,244 @@ body {
     color: #ffaa33;
     outline: none;
 }
+
+/* ======================================
+   PULSANTE STORICO POMODORI
+====================================== */
+
+.pom-hist-trigger {
+    margin-top: 0.65rem;
+}
+
+/* ======================================
+   CRONOLOGIA POMODORI (modal)
+====================================== */
+
+.pom-hist {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 210;
+    padding: 0 0 env(safe-area-inset-bottom, 0);
+}
+
+.pom-hist[hidden] {
+    display: none;
+}
+
+.pom-hist__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(3, 6, 14, 0.75);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.pom-hist__panel {
+    position: relative;
+    background: rgba(5, 8, 22, 0.97);
+    border: 1px solid rgba(255, 0, 255, 0.18);
+    border-bottom: none;
+    border-radius: 20px 20px 0 0;
+    padding: 1.5rem 1.5rem 1.25rem;
+    width: 100%;
+    max-width: 520px;
+    max-height: 70dvh;
+    display: flex;
+    flex-direction: column;
+    box-shadow:
+        0 0 40px rgba(255, 0, 255, 0.07),
+        0 -10px 60px rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    animation: hist-slide-up 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@keyframes hist-slide-up {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+.pom-hist__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+}
+
+.pom-hist__title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: var(--neon-pink);
+    text-shadow: 0 0 12px rgba(255, 0, 255, 0.5);
+}
+
+.pom-hist__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pom-hist__close:hover {
+    border-color: var(--neon-pink);
+    color: var(--neon-pink);
+}
+
+.pom-hist__body {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding-right: 0.25rem;
+}
+
+.pom-hist__body::-webkit-scrollbar {
+    width: 3px;
+}
+.pom-hist__body::-webkit-scrollbar-track {
+    background: transparent;
+}
+.pom-hist__body::-webkit-scrollbar-thumb {
+    background: rgba(255, 0, 255, 0.3);
+    border-radius: 4px;
+}
+
+.pom-hist__total {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.58rem;
+    letter-spacing: 1.5px;
+    color: var(--text-secondary);
+    padding-bottom: 0.7rem;
+    border-bottom: 1px solid var(--glass-border);
+    flex-shrink: 0;
+}
+
+.pom-hist__total strong {
+    color: var(--neon-pink);
+    text-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
+}
+
+.pom-hist__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.pom-hist__date {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.pom-hist__date-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 8px rgba(0, 255, 255, 0.35);
+}
+
+.pom-hist__date-count {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.52rem;
+    color: rgba(255, 0, 255, 0.7);
+    letter-spacing: 1px;
+}
+
+.pom-hist__times {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.pom-hist__time {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: rgba(255, 0, 255, 0.05);
+    border: 1px solid rgba(255, 0, 255, 0.12);
+    border-radius: 6px;
+    padding: 0.2rem 0.5rem;
+    letter-spacing: 0.5px;
+}
+
+.pom-hist__time::before {
+    content: '🍅 ';
+    font-size: 0.6rem;
+}
+
+.pom-hist__empty {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 2rem 0;
+    opacity: 0.6;
+}
+
+.pom-hist__footer {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--glass-border);
+    margin-top: 0.5rem;
+}
+
+.pom-hist__clear {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: transparent;
+    border: 1px solid rgba(255, 0, 255, 0.2);
+    color: rgba(255, 0, 255, 0.5);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pom-hist__clear:hover {
+    border-color: var(--neon-pink);
+    color: var(--neon-pink);
+    box-shadow: 0 0 12px rgba(255, 0, 255, 0.2);
+}
+
+@media (min-width: 480px) {
+    .pom-hist__panel {
+        border-radius: 20px;
+        border-bottom: 1px solid rgba(255, 0, 255, 0.18);
+        align-self: center;
+    }
+    @keyframes hist-slide-up {
+        from { transform: translateY(20px) scale(0.97); opacity: 0; }
+        to   { transform: translateY(0) scale(1);       opacity: 1; }
+    }
+}

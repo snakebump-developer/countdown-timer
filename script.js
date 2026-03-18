@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Constants
     const CIRCUMFERENCE = 2 * Math.PI * 45; // ≈ 282.74 (r=45, viewBox 100×100)
+    const HISTORY_KEY   = 'pom_history';
+    const HISTORY_MAX   = 500;
 
     // State
     let totalSeconds = 300;
@@ -45,9 +47,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const tomatoesTray = document.getElementById('tomatoes-tray');
     const pomSwitchEl = document.querySelector('.pom-switch');
 
+    // History elements
+    const histBtn          = document.getElementById('pom-hist-btn');
+    const histModal        = document.getElementById('pom-hist');
+    const histBackdrop     = document.getElementById('pom-hist-backdrop');
+    const histCloseBtn     = document.getElementById('pom-hist-close');
+    const histBody         = document.getElementById('pom-hist-body');
+    const histClearBtn     = document.getElementById('pom-hist-clear');
+
     // Init
     updateDisplay();
     updateRing();
+    updateHistoryBtnVisibility();
 
     // Sound Synthesis (Web Audio API)
     let audioCtx = null;
@@ -117,6 +128,109 @@ document.addEventListener('DOMContentLoaded', () => {
         progressRing.style.strokeDashoffset = CIRCUMFERENCE * (1 - fraction);
     }
 
+    // ── Pomodoro History (localStorage) ──────────────────────────
+
+    function savePomodoroToHistory() {
+        const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        history.push({ ts: Date.now() });
+        if (history.length > HISTORY_MAX) history.splice(0, history.length - HISTORY_MAX);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    }
+
+    function getHistory() {
+        return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    }
+
+    function updateHistoryBtnVisibility() {
+        histBtn.style.display = getHistory().length > 0 ? '' : 'none';
+    }
+
+    function openHistory() {
+        renderHistory();
+        histModal.hidden = false;
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeHistory() {
+        histModal.hidden = true;
+        document.body.style.overflow = '';
+    }
+
+    function renderHistory() {
+        const history = getHistory();
+
+        if (history.length === 0) {
+            histBody.innerHTML = '<p class="pom-hist__empty">Nessun pomodoro ancora. Inizia una sessione!</p>';
+            return;
+        }
+
+        const today     = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+
+        function isSameDay(d1, d2) {
+            return d1.getFullYear() === d2.getFullYear() &&
+                   d1.getMonth()    === d2.getMonth()    &&
+                   d1.getDate()     === d2.getDate();
+        }
+
+        function formatDay(date) {
+            if (isSameDay(date, today))     return 'OGGI';
+            if (isSameDay(date, yesterday)) return 'IERI';
+            return date.toLocaleDateString('it-IT', {
+                day: '2-digit', month: 'short', year: 'numeric'
+            }).toUpperCase();
+        }
+
+        function formatHM(ts) {
+            return new Date(ts).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Group by calendar day
+        const groupMap = new Map();
+        history.forEach(entry => {
+            const d = new Date(entry.ts);
+            const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+            if (!groupMap.has(key)) groupMap.set(key, { date: d, entries: [] });
+            groupMap.get(key).entries.push(entry);
+        });
+
+        // Sort descending (most recent day first)
+        const groups = [...groupMap.values()].sort((a, b) => b.date - a.date);
+
+        let html = `<div class="pom-hist__total">Totale: <strong>${history.length} 🍅</strong></div>`;
+        groups.forEach(group => {
+            const times = group.entries
+                .slice()
+                .sort((a, b) => b.ts - a.ts)
+                .map(e => `<span class="pom-hist__time">${formatHM(e.ts)}</span>`)
+                .join('');
+            html += `
+                <div class="pom-hist__group">
+                    <div class="pom-hist__date">
+                        <span class="pom-hist__date-label">${formatDay(group.date)}</span>
+                        <span class="pom-hist__date-count">${group.entries.length} 🍅</span>
+                    </div>
+                    <div class="pom-hist__times">${times}</div>
+                </div>`;
+        });
+
+        histBody.innerHTML = html;
+    }
+
+    // History event listeners
+    histBtn.addEventListener('click', openHistory);
+    histCloseBtn.addEventListener('click', closeHistory);
+    histBackdrop.addEventListener('click', closeHistory);
+    histClearBtn.addEventListener('click', () => {
+        localStorage.removeItem(HISTORY_KEY);
+        updateHistoryBtnVisibility();
+        closeHistory();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !histModal.hidden) closeHistory();
+    });
+
     // ── Pomodoro helpers ──────────────────────────────────────────
 
     function getPomWorkSec() {
@@ -162,6 +276,9 @@ document.addEventListener('DOMContentLoaded', () => {
         item.textContent = '🍅';
         item.setAttribute('title', `Pomodoro #${pomCount}`);
         tomatoesTray.appendChild(item);
+        // Salva nella cronologia locale e aggiorna pulsante
+        savePomodoroToHistory();
+        updateHistoryBtnVisibility();
         // Salva su Firestore se l'utente è autenticato
         window.savePomodoro?.();
     }

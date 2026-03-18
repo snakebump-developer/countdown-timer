@@ -178,7 +178,34 @@
                 <span class="tomatoes__label">POMODORI RACCOLTI</span>
                 <div class="tomatoes__tray" id="tomatoes-tray"></div>
             </div>
+
+            <!-- Pulsante cronologia (visibile quando esiste storico) -->
+            <button class="shortcuts__trigger pom-hist-trigger" id="pom-hist-btn" type="button" style="display:none;" aria-label="Mostra cronologia pomodori">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>STORICO</span>
+            </button>
         </main>
+
+        <!-- ── Cronologia Pomodori ── -->
+        <div class="pom-hist" id="pom-hist" role="dialog" aria-modal="true" aria-labelledby="pom-hist-title" hidden>
+            <div class="pom-hist__backdrop" id="pom-hist-backdrop"></div>
+            <div class="pom-hist__panel">
+                <div class="pom-hist__header">
+                    <h3 class="pom-hist__title" id="pom-hist-title">
+                        <i class="fa-solid fa-clock-rotate-left"></i> CRONOLOGIA
+                    </h3>
+                    <button class="pom-hist__close" id="pom-hist-close" aria-label="Chiudi cronologia">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="pom-hist__body" id="pom-hist-body"></div>
+                <div class="pom-hist__footer">
+                    <button class="pom-hist__clear" id="pom-hist-clear" type="button">
+                        <i class="fa-solid fa-trash-can"></i> SVUOTA TUTTO
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- ── Auth modal ── -->
         <div class="auth-modal" id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" hidden>
