@@ -55,10 +55,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const histBody         = document.getElementById('pom-hist-body');
     const histClearBtn     = document.getElementById('pom-hist-clear');
 
+    // Stats elements
+    const statsBtn         = document.getElementById('stats-btn');
+    const statsModal       = document.getElementById('stats-modal');
+    const statsBackdropEl  = document.getElementById('stats-backdrop');
+    const statsCloseBtn    = document.getElementById('stats-close-btn');
+    const statsBody        = document.getElementById('stats-body');
+
+    // Daily goal elements
+    const dailyGoalWidget  = document.getElementById('daily-goal');
+    const dailyGoalBar     = document.getElementById('daily-goal-bar');
+    const dailyGoalTrack   = document.getElementById('daily-goal-track');
+    const dailyGoalCurrent = document.getElementById('daily-goal-current');
+    const dailyGoalTarget  = document.getElementById('daily-goal-target');
+    const dailyGoalForm    = document.getElementById('daily-goal-form');
+    const dailyGoalInput   = document.getElementById('daily-goal-input');
+    const dailyGoalSetBtn  = document.getElementById('daily-goal-set');
+    const dailyGoalEditBtn = document.getElementById('daily-goal-edit-btn');
+
     // Init
     updateDisplay();
     updateRing();
     updateHistoryBtnVisibility();
+    updateDailyGoal();
 
     // Sound Synthesis (Web Audio API)
     let audioCtx = null;
@@ -221,6 +240,225 @@ document.addEventListener('DOMContentLoaded', () => {
     // Espone updateHistoryBtnVisibility per auth.js (post-sync al login)
     window.updateHistoryBtnVisibility = updateHistoryBtnVisibility;
 
+    // ── Daily Goal ────────────────────────────────────────────────
+
+    const DAILY_GOAL_KEY  = 'daily_goal';
+    const DAILY_GOAL_DEF  = 8;
+
+    function getDailyGoal() {
+        return Math.max(1, parseInt(localStorage.getItem(DAILY_GOAL_KEY) || DAILY_GOAL_DEF, 10));
+    }
+
+    function getTodayCount() {
+        const now = new Date();
+        return getHistory().filter(e => {
+            const d = new Date(e.ts);
+            return d.getFullYear() === now.getFullYear() &&
+                   d.getMonth()    === now.getMonth()    &&
+                   d.getDate()     === now.getDate();
+        }).length;
+    }
+
+    function updateDailyGoal() {
+        const goal    = getDailyGoal();
+        const current = getTodayCount();
+        const pct     = Math.min(100, Math.round((current / goal) * 100));
+
+        dailyGoalCurrent.textContent = current;
+        dailyGoalTarget.textContent  = goal;
+        dailyGoalBar.style.width     = `${pct}%`;
+        dailyGoalBar.classList.toggle('daily-goal__fill--complete', current >= goal);
+        dailyGoalTrack.setAttribute('aria-valuenow', pct);
+
+        // Celebrazione quando obiettivo raggiunto esattamente
+        if (current === goal && goal > 0) {
+            dailyGoalWidget.classList.add('daily-goal--complete');
+        } else {
+            dailyGoalWidget.classList.remove('daily-goal--complete');
+        }
+    }
+
+    window.updateDailyGoalDisplay = updateDailyGoal;
+
+    // Daily goal form toggle
+    dailyGoalEditBtn.addEventListener('click', () => {
+        const isOpen = !dailyGoalForm.hidden;
+        if (isOpen) {
+            dailyGoalForm.hidden = true;
+        } else {
+            dailyGoalInput.value = getDailyGoal();
+            dailyGoalForm.hidden = false;
+            dailyGoalInput.focus();
+            dailyGoalInput.select();
+        }
+    });
+
+    function saveDailyGoal() {
+        const v = Math.max(1, Math.min(50, parseInt(dailyGoalInput.value, 10) || DAILY_GOAL_DEF));
+        localStorage.setItem(DAILY_GOAL_KEY, v);
+        dailyGoalForm.hidden = true;
+        updateDailyGoal();
+    }
+
+    dailyGoalSetBtn.addEventListener('click', saveDailyGoal);
+    dailyGoalInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter')  { e.preventDefault(); saveDailyGoal(); }
+        if (e.key === 'Escape') { dailyGoalForm.hidden = true; }
+    });
+
+    // Chiudi form se si clicca fuori
+    document.addEventListener('click', (e) => {
+        if (!dailyGoalForm.hidden && !dailyGoalWidget.contains(e.target)) {
+            dailyGoalForm.hidden = true;
+        }
+    });
+
+    // ── Dashboard Statistiche ─────────────────────────────────────
+
+    function calcStats() {
+        const history = getHistory();
+        if (!history.length) return null;
+        const now = new Date();
+
+        const todayCount = getTodayCount();
+
+        // Ultimi 7 giorni
+        const week0 = new Date(now);
+        week0.setDate(now.getDate() - 6);
+        week0.setHours(0, 0, 0, 0);
+        const weekCount = history.filter(e => e.ts >= week0.getTime()).length;
+
+        const total = history.length;
+
+        // Mappa giorni
+        const dayMap = new Map();
+        history.forEach(e => {
+            const d = new Date(e.ts);
+            const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+            dayMap.set(key, (dayMap.get(key) || 0) + 1);
+        });
+        const activeDays = dayMap.size;
+        const avgPerDay  = activeDays > 0 ? (total / activeDays).toFixed(1) : '0';
+
+        // Giorno migliore
+        let bestKey = '', bestCount = 0;
+        dayMap.forEach((cnt, k) => { if (cnt > bestCount) { bestCount = cnt; bestKey = k; } });
+        let bestLabel = '';
+        if (bestKey) {
+            const [y, m, d] = bestKey.split('-').map(Number);
+            bestLabel = new Date(y, m, d).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'short' });
+        }
+
+        // Focus time totale (25 min per pomodoro standard)
+        const focusMins  = total * 25;
+        const focusHours = Math.floor(focusMins / 60);
+        const focusMinR  = focusMins % 60;
+
+        // Ultimi 7 giorni per il grafico
+        const last7 = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(now.getDate() - i);
+            d.setHours(0, 0, 0, 0);
+            const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+            last7.push({
+                label: d.toLocaleDateString('it-IT', { weekday: 'short' }).slice(0, 3).toUpperCase(),
+                count: dayMap.get(key) || 0,
+                isToday: i === 0,
+            });
+        }
+        const max7 = Math.max(1, ...last7.map(d => d.count));
+
+        return { total, todayCount, weekCount, focusHours, focusMinR, avgPerDay, activeDays, bestLabel, bestCount, last7, max7 };
+    }
+
+    function renderStats() {
+        const s = calcStats();
+        if (!s) {
+            statsBody.innerHTML = '<p class="stats-modal__empty">Completa il tuo primo pomodoro per vedere le statistiche!</p>';
+            return;
+        }
+
+        const bars = s.last7.map(d => {
+            const pct = Math.round((d.count / s.max7) * 100);
+            return `<div class="stats-modal__bar-item${d.isToday ? ' stats-modal__bar-item--today' : ''}">
+                <div class="stats-modal__bar-track">
+                    <div class="stats-modal__bar-fill" style="height:${pct}%"></div>
+                </div>
+                <span class="stats-modal__bar-count">${d.count > 0 ? d.count : ''}</span>
+                <span class="stats-modal__bar-label">${d.label}</span>
+            </div>`;
+        }).join('');
+
+        const goal         = getDailyGoal();
+        const goalPct      = Math.min(100, Math.round((s.todayCount / goal) * 100));
+        const goalComplete = s.todayCount >= goal;
+
+        statsBody.innerHTML = `
+            <div class="stats-modal__grid">
+                <div class="stats-modal__kpi">
+                    <span class="stats-modal__kpi-val">${s.total}</span>
+                    <span class="stats-modal__kpi-lbl">🍅 TOTALI</span>
+                </div>
+                <div class="stats-modal__kpi">
+                    <span class="stats-modal__kpi-val">${s.todayCount}</span>
+                    <span class="stats-modal__kpi-lbl">📅 OGGI</span>
+                </div>
+                <div class="stats-modal__kpi">
+                    <span class="stats-modal__kpi-val">${s.weekCount}</span>
+                    <span class="stats-modal__kpi-lbl">📆 7 GIORNI</span>
+                </div>
+            </div>
+            <div class="stats-modal__focus-time">
+                <span class="stats-modal__focus-label">⏱ FOCUS TIME TOTALE</span>
+                <span class="stats-modal__focus-val">${s.focusHours}h ${String(s.focusMinR).padStart(2,'0')}m</span>
+                <span class="stats-modal__focus-note">Calcolato su 25 min per pomodoro</span>
+            </div>
+            <div class="stats-modal__row2">
+                <div class="stats-modal__sub">
+                    <span class="stats-modal__sub-lbl">MEDIA / GIORNO</span>
+                    <span class="stats-modal__sub-val">${s.avgPerDay} 🍅</span>
+                    <span class="stats-modal__sub-note">${s.activeDays} giorn${s.activeDays === 1 ? 'o' : 'i'} attivi</span>
+                </div>
+                <div class="stats-modal__sub stats-modal__sub--best">
+                    <span class="stats-modal__sub-lbl">GIORNO MIGLIORE</span>
+                    <span class="stats-modal__sub-val">${s.bestCount} 🍅</span>
+                    <span class="stats-modal__sub-note">${s.bestLabel}</span>
+                </div>
+            </div>
+            <div class="stats-modal__goal-section">
+                <div class="stats-modal__goal-header">
+                    <span class="stats-modal__goal-lbl"><i class="fa-solid fa-bullseye"></i> OBIETTIVO OGGI</span>
+                    <span class="stats-modal__goal-nums${goalComplete ? ' stats-modal__goal-nums--done' : ''}">${s.todayCount} / ${goal} 🍅${goalComplete ? ' ✓' : ''}</span>
+                </div>
+                <div class="stats-modal__goal-track">
+                    <div class="stats-modal__goal-fill${goalComplete ? ' stats-modal__goal-fill--done' : ''}" style="width:${goalPct}%"></div>
+                </div>
+            </div>
+            <div class="stats-modal__chart">
+                <span class="stats-modal__chart-title">ULTIMI 7 GIORNI</span>
+                <div class="stats-modal__bars">${bars}</div>
+            </div>`;
+    }
+
+    function openStats() {
+        renderStats();
+        statsModal.hidden = false;
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeStats() {
+        statsModal.hidden = true;
+        document.body.style.overflow = '';
+    }
+
+    statsBtn.addEventListener('click', openStats);
+    statsCloseBtn.addEventListener('click', closeStats);
+    statsBackdropEl.addEventListener('click', closeStats);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !statsModal.hidden) closeStats();
+    });
+
     // History event listeners
     histBtn.addEventListener('click', openHistory);
     histCloseBtn.addEventListener('click', closeHistory);
@@ -284,6 +522,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Salva nella cronologia locale e aggiorna pulsante
         savePomodoroToHistory();
         updateHistoryBtnVisibility();
+        // Aggiorna obiettivo giornaliero
+        updateDailyGoal();
         // Aggiorna badge streak in auth-bar
         window.updateStreakBadge?.();
         // Salva su Firestore se l'utente è autenticato

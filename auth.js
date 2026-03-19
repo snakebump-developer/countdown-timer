@@ -390,6 +390,8 @@ async function syncHistory(uid) {
 
         // Aggiorna visibilità pulsante STORICO in script.js
         window.updateHistoryBtnVisibility?.();
+        // Aggiorna obiettivo giornaliero dopo sync
+        window.updateDailyGoalDisplay?.();
     } catch (e) {
         console.error('[syncHistory] Firestore error:', e?.message ?? e);
         // Sync non disponibile (offline): si usa solo la versione locale

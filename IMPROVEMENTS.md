@@ -19,9 +19,9 @@
 
 ### Dati & Statistiche (il cuore della retention)
 
-- [ ] **Dashboard statistiche personali** — Pagina dedicata con: focus time totale, media giornaliera, giorno migliore, trend settimanale
+- [x] **Dashboard statistiche personali** — Pagina dedicata con: focus time totale, media giornaliera, giorno migliore, trend settimanale
 - [x] **Sistema Streak (giorni consecutivi)** — Mostrare la "striscia" di giorni con almeno 1 pomodoro: principale driver di retention (vedi Duolingo)
-- [ ] **Obiettivo giornaliero configurabile** — "Voglio completare X pomodori oggi" con progress bar visibile nel timer
+- [x] **Obiettivo giornaliero configurabile** — "Voglio completare X pomodori oggi" con progress bar visibile nel timer
 - [ ] **Heatmap annuale produttività** — Griglia stile GitHub contributions per visualizzare i propri pattern a lungo termine
 
 ### Acquisizione & Distribuzione
@@ -117,7 +117,7 @@
 | Login Google (OAuth) | 🔥🔥🔥 | Basso | Prima cosa da fare |
 | Reset password | 🔥🔥🔥 | Minimo | Prima cosa da fare |
 | Sistema Streak | 🔥🔥🔥 | Medio | Sprint 1 |
-| Dashboard statistiche | 🔥🔥🔥 | Medio | Sprint 1 |
+| Dashboard statistiche | 🔥🔥🔥 | Medio | ✅ Completato |
 | Task associato sessione | 🔥🔥 | Basso | Sprint 1 |
 | Suoni ambiente | 🔥🔥 | Basso | Sprint 1 |
 | Temi visivi | 🔥🔥 | Medio | Sprint 2 |
@@ -128,4 +128,4 @@
 
 ---
 
-*Ultimo aggiornamento: 2026-03-19*
+*Ultimo aggiornamento: 2026-03-19 (Sprint 1 completato)*

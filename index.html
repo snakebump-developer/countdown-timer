@@ -203,7 +203,54 @@
                 <i class="fa-solid fa-clock-rotate-left"></i>
                 <span>STORICO</span>
             </button>
+
+            <!-- Pulsante statistiche -->
+            <button class="shortcuts__trigger stats-trigger" id="stats-btn" type="button" aria-label="Mostra statistiche personali">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>STATISTICHE</span>
+            </button>
+
+            <!-- Widget Obiettivo Giornaliero -->
+            <div class="daily-goal" id="daily-goal" aria-label="Obiettivo giornaliero pomodori">
+                <div class="daily-goal__row">
+                    <i class="fa-solid fa-bullseye daily-goal__icon"></i>
+                    <span class="daily-goal__label">OBIETTIVO</span>
+                    <span class="daily-goal__progress">
+                        <span id="daily-goal-current">0</span><span class="daily-goal__sep">/</span><span id="daily-goal-target">8</span>
+                        <span class="daily-goal__emoji">🍅</span>
+                    </span>
+                    <button class="daily-goal__edit-btn" id="daily-goal-edit-btn" type="button" aria-label="Modifica obiettivo">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                </div>
+                <div class="daily-goal__track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="daily-goal-track">
+                    <div class="daily-goal__fill" id="daily-goal-bar"></div>
+                </div>
+                <div class="daily-goal__form" id="daily-goal-form" hidden>
+                    <input type="number" id="daily-goal-input" class="daily-goal__input" min="1" max="50" value="8" aria-label="Numero obiettivo">
+                    <span class="daily-goal__form-lbl">pomodori / giorno</span>
+                    <button class="daily-goal__set-btn" id="daily-goal-set" type="button" aria-label="Conferma">
+                        <i class="fa-solid fa-check"></i>
+                    </button>
+                </div>
+            </div>
         </main>
+
+        <!-- ── Dashboard Statistiche ── -->
+        <div class="stats-modal" id="stats-modal" role="dialog" aria-modal="true" aria-labelledby="stats-modal-title" hidden>
+            <div class="stats-modal__backdrop" id="stats-backdrop"></div>
+            <div class="stats-modal__panel">
+                <div class="stats-modal__header">
+                    <h3 class="stats-modal__title" id="stats-modal-title">
+                        <i class="fa-solid fa-chart-line"></i> STATISTICHE
+                    </h3>
+                    <button class="stats-modal__close" id="stats-close-btn" aria-label="Chiudi statistiche">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="stats-modal__body" id="stats-body"></div>
+            </div>
+        </div>
 
         <!-- ── Cronologia Pomodori ── -->
         <div class="pom-hist" id="pom-hist" role="dialog" aria-modal="true" aria-labelledby="pom-hist-title" hidden>
@@ -378,16 +425,6 @@
                         <i class="fa-solid fa-rocket"></i> PROSSIMAMENTE
                     </h3>
                     <ul class="profile-panel__features">
-                        <li class="profile-panel__feature">
-                            <i class="fa-solid fa-chart-line profile-panel__feat-icon"></i>
-                            <span>Dashboard Statistiche</span>
-                            <span class="profile-panel__feat-tag">PRESTO</span>
-                        </li>
-                        <li class="profile-panel__feature">
-                            <i class="fa-solid fa-bullseye profile-panel__feat-icon"></i>
-                            <span>Obiettivo Giornaliero</span>
-                            <span class="profile-panel__feat-tag">PRESTO</span>
-                        </li>
                         <li class="profile-panel__feature">
                             <i class="fa-solid fa-calendar-days profile-panel__feat-icon"></i>
                             <span>Heatmap Annuale</span>

@@ -158,9 +158,43 @@ COMPLETED TASKS:
    - sw.js: BUILD_VERSION aggiornato a '2026-03-19.4'.
    NOTE:
      • Il panel è un right-side drawer su desktop, bottom sheet rounded su mobile.
-     • La sezione PROSSIMAMENTE (Dashboard Statistiche, Obiettivo Giornaliero, Heatmap, Export CSV, Temi, Piano PRO) è opaca (cursor:default, opacity:0.5) per comunicare roadmap senza feature incomplete attive.
+     • La sezione PROSSIMAMENTE (Dashboard Statistiche, Obiettivo Giornaliero ora rimossi perché implementati, restano: Heatmap, Export CSV, Temi, Piano PRO).
      • calcStreak() tollera il caso "nessun pomodoro oggi": fa partire il conteggio da ieri.
      • IMPROVEMENTS.md: Sistema Streak marcato [x].
+
+9. ✅ [2026-03-19] Implementata Dashboard Statistiche + Obiettivo Giornaliero:
+   File modificati:
+   - script.js: aggiunto DAILY_GOAL_KEY ('daily_goal'), DEFAULT 8. Funzioni:
+     • getDailyGoal() / getTodayCount() — recupero dati.
+     • updateDailyGoal() — aggiorna progress bar e stato del widget; chiamato in addTomato() e all'init.
+     • calcStats() — calcola: totale, oggi, 7 giorni, focus time totale (25min×pomodori),
+       media/giorno attivo, giorno migliore, array last7 per il grafico a barre.
+     • renderStats() — genera HTML del corpo modale con KPI grid, focus time, media+best day,
+       sezione obiettivo giornaliero con progress bar, grafico 7 giorni.
+     • openStats() / closeStats() — gestione modale.
+     • Event listeners: stats-btn, stats-close-btn, stats-backdrop, Escape per il modale;
+       daily-goal-edit-btn (toggle form), daily-goal-set (salva), tasto Enter/Escape sul form;
+       click esterno per chiudere il form inline.
+     • window.updateDailyGoalDisplay esposto per auth.js (chiamato dopo syncHistory).
+   - auth.js: syncHistory() chiama window.updateDailyGoalDisplay?.() dopo la sync.
+   - index.html: aggiunto pulsante #stats-btn (.stats-trigger) accanto a STORICO.
+   - index.html: aggiunto modale #stats-modal (.stats-modal) con backdrop, panel, header, body.
+   - index.html: aggiunto widget #daily-goal (.daily-goal) con:
+     • row: icona bullseye, label OBIETTIVO, contatore corrente/obiettivo, pulsante edit.
+     • track: progress bar (#daily-goal-bar).
+     • form (collassabile hidden): input number, label, pulsante conferma.
+   - index.html: rimossi "Dashboard Statistiche" e "Obiettivo Giornaliero" dalla sezione
+     PROSSIMAMENTE del profile panel (ora sono feature attive).
+   - style.css: aggiunto .stats-trigger, blocco .daily-goal (widget + form + stati complete),
+     blocco .stats-modal (bottom-sheet mobile / modale centrato ≥480px, stesso pattern di pom-hist),
+     KPI grid, focus-time, row2 (media + giorno migliore), goal-section, chart (bars 7 giorni).
+   - sw.js: BUILD_VERSION aggiornato a '2026-03-19.5'.
+   DESIGN:
+     • Dashboard: bottom-sheet su mobile, modale centrato (max 560px) su ≥480px, animazione hist-slide-up.
+     • Widget obiettivo: sempre visibile nell'area timer, pill con progress bar cyan→verde.
+       Il widget diventa verde neon quando l'obiettivo è raggiunto (.daily-goal--complete).
+     • Grafico 7 giorni: barre CSS pure (height%), oggi evidenziato in cyan.
+     • Nessuna dipendenza esterna: tutto calcolato da localStorage 'pom_history'.
 
 IN THE END:
 Eseguire sempre il browser integrato sul link: https://countdown-timer-red-nu.vercel.app/
