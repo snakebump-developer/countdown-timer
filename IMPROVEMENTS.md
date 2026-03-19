@@ -12,7 +12,7 @@
 
 ### Autenticazione & Account
 
-- [ ] **Login con Google (OAuth)** — Abbassare la barriera di entry: un tap invece di email+password riduce abbandoni del ~60%
+- [x] **Login con Google (OAuth)** — Abbassare la barriera di entry: un tap invece di email+password riduce abbandoni del ~60%
 - [x] **Reset password via email** — Feature mancante che blocca utenti che dimenticano la password
 - [ ] **Account linking anonimo→registrato** — Permettere di convertire una sessione anonima in account senza perdere dati locali
 - [x] **Verifica email** — Inviare email di verifica alla registrazione per ridurre spam e aumentare fiducia
@@ -37,6 +37,7 @@
 
 ### Esperienza utente e personalizzazione
 
+- [ ] **Migliorare il template delle email** - Andare su Firebase e migliorare i template forniti di default in : Autentication -> modelli
 - [ ] **Libreria suoni di fine sessione** — Scelta tra: beep sintetico (attuale), campanello, gong zen, chime, white noise tick — differenziatore chiave rispetto a competitor
 - [ ] **Suoni/musica ambiente durante la sessione** — Rain, café noise, forest: categoria molto richiesta su app productivity (vedi Brain.fm)
 - [ ] **Temi visivi multipli** — Almeno 3 temi: Dark (attuale), Light, Hacker Green — può essere la prima feature premium

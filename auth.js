@@ -8,6 +8,8 @@ import {
     onAuthStateChanged,
     sendPasswordResetEmail,
     sendEmailVerification,
+    GoogleAuthProvider,
+    signInWithPopup,
 } from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js';
 import {
     getFirestore,
@@ -69,6 +71,12 @@ const forgotPasswordBtn  = document.getElementById('forgot-password-btn');
 const verifyNoticeEl     = document.getElementById('verify-notice');
 const resendVerifyBtn    = document.getElementById('resend-verify-btn');
 const dismissVerifyBtn   = document.getElementById('dismiss-verify-btn');
+
+// Ref bottoni Google
+const googleLoginBtn    = document.getElementById('google-login-btn');
+const googleRegisterBtn = document.getElementById('google-register-btn');
+
+const googleProvider = new GoogleAuthProvider();
 
 // ── Auth snack notification ──────────────────────────────
 const authSnackEl   = document.getElementById('auth-snack');
@@ -333,11 +341,12 @@ onAuthStateChanged(auth, async (user) => {
     if (user) {
         authOpenBtn.hidden = true;
         authUserEl.hidden  = false;
-        authEmailEl.textContent = user.email;
+        // Mostra nome (Google) o email (email/password)
+        authEmailEl.textContent = user.displayName || user.email || '';
         await loadUserStats(user.uid);
         // Sincronizza cronologia da Firestore → localStorage
         await syncHistory(user.uid);
-        // Mostra/nasconde banner verifica email
+        // Google garantisce sempre emailVerified = true; nascondi il banner
         if (!user.emailVerified) {
             showVerifyNotice();
         } else {
@@ -345,8 +354,11 @@ onAuthStateChanged(auth, async (user) => {
         }
         // Mostra snack solo su login/registrazione attivi, non su ripristino sessione
         if (!isFirstAuthCheck) {
+            const isGoogle = user.providerData.some(p => p.providerId === 'google.com');
             if (justRegistered) {
                 showAuthSnack('Account creato! Controlla la tua email per verificare l\'account 📧', 'success');
+            } else if (isGoogle) {
+                showAuthSnack(`Bentornato, ${user.displayName?.split(' ')[0] ?? 'utente'}! 👋`, 'success');
             } else if (!user.emailVerified) {
                 showAuthSnack('Accesso effettuato — verifica la tua email per attivare l\'account', 'warning');
             } else {
@@ -557,6 +569,23 @@ resendVerifyBtn?.addEventListener('click', async () => {
 
 dismissVerifyBtn?.addEventListener('click', hideVerifyNotice);
 
+// ── Login con Google ──────────────────────────────────────────
+async function handleGoogleSignIn() {
+    try {
+        await signInWithPopup(auth, googleProvider);
+        // onAuthStateChanged gestisce tutto il resto (snack, sync, ecc.)
+    } catch (err) {
+        // L'utente ha chiuso il popup: non mostrare errore
+        if (err.code === 'auth/popup-closed-by-user' ||
+            err.code === 'auth/cancelled-popup-request') return;
+        const msg = friendlyError(err.code);
+        showAuthSnack(msg, 'error');
+    }
+}
+
+googleLoginBtn?.addEventListener('click', handleGoogleSignIn);
+googleRegisterBtn?.addEventListener('click', handleGoogleSignIn);
+
 // ── Logout ────────────────────────────────────────────────────
 authLogoutBtn.addEventListener('click', () => signOut(auth));
 
@@ -579,7 +608,9 @@ function friendlyError(code) {
         'auth/too-many-requests':        'Troppi tentativi. Riprova tra qualche minuto.',
         'auth/invalid-credential':       'Credenziali non valide. Controlla email e password.',
         'auth/network-request-failed':   'Errore di rete. Controlla la connessione.',
-        'auth/missing-email':            'Inserisci un indirizzo email.',
-        'auth/requires-recent-login':    'Operazione scaduta. Esegui logout e accedi di nuovo.',
+        'auth/missing-email':                'Inserisci un indirizzo email.',
+        'auth/requires-recent-login':        'Operazione scaduta. Esegui logout e accedi di nuovo.',
+        'auth/popup-blocked':                'Il popup è stato bloccato dal browser. Consenti i popup per questo sito.',
+        'auth/account-exists-with-different-credential': 'Esiste già un account con questa email. Accedi con email e password.',
     })[code] ?? 'Si è verificato un errore. Riprova.';
 }

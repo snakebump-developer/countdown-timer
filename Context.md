@@ -120,6 +120,27 @@ COMPLETED TASKS:
      • L'app rimane completamente accessibile — la verifica è informativa, non bloccante.
      • Una volta verificata l'email, il banner scompare definitivamente.
 
+7. ✅ [2026-03-19] Implementato Login con Google (OAuth):
+   - auth.js: import aggiuntivi GoogleAuthProvider, signInWithPopup.
+   - auth.js: ref googleLoginBtn, googleRegisterBtn; istanza const googleProvider = new GoogleAuthProvider().
+   - auth.js: funzione handleGoogleSignIn() → signInWithPopup; gestisce popup-closed/cancelled silenziosamente.
+   - auth.js: entrambi i bottoni (#google-login-btn, #google-register-btn) chiamano handleGoogleSignIn.
+   - auth.js: onAuthStateChanged aggiornato:
+     • authEmailEl mostra user.displayName (Google) con fallback a user.email.
+     • snack personalizzato "Bentornato, <nome>!" per accessi Google.
+     • verifyNotice mai mostrato per Google (emailVerified sempre true).
+   - auth.js: friendlyError aggiornato con 'auth/popup-blocked' e 'auth/account-exists-with-different-credential'.
+   - index.html: bottone #google-login-btn nel panel-login con SVG Google ufficiale + divisore OPPURE.
+   - index.html: bottone #google-register-btn nel panel-register con SVG Google ufficiale + divisore OPPURE.
+   - style.css: .auth-modal__divider (separatore testo "OPPURE" con linee laterali).
+   - style.css: .auth-modal__google (bottone grigio traslucido con logo Google SVG inline).
+   - sw.js: BUILD_VERSION aggiornato a '2026-03-19.3'.
+   NOTE:
+     • signInWithPopup funziona su desktop e browser moderni mobile; non richiede redirect.
+     • Se l'utente ha già un account email/password con la stessa email, Firebase restituisce
+       'auth/account-exists-with-different-credential' → messaggio friendly già gestito.
+     • Il flusso di sync Firestore (loadUserStats + syncHistory) è identico per Google e email/password.
+
 IN THE END:
 Eseguire sempre il browser integrato sul link: https://countdown-timer-red-nu.vercel.app/
 
