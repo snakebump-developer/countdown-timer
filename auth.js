@@ -6,6 +6,8 @@ import {
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
+    sendPasswordResetEmail,
+    sendEmailVerification,
 } from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js';
 import {
     getFirestore,
@@ -62,12 +64,26 @@ const regEmailHintEl      = document.getElementById('reg-email-hint');
 const regPasswordHintEl   = document.getElementById('reg-password-hint');
 const regStrengthBar      = document.getElementById('reg-strength-bar');
 
+// Ref per reset password e verifica email
+const forgotPasswordBtn  = document.getElementById('forgot-password-btn');
+const verifyNoticeEl     = document.getElementById('verify-notice');
+const resendVerifyBtn    = document.getElementById('resend-verify-btn');
+const dismissVerifyBtn   = document.getElementById('dismiss-verify-btn');
+
 // ── Auth snack notification ──────────────────────────────
 const authSnackEl   = document.getElementById('auth-snack');
 const authSnackIcon = document.getElementById('auth-snack-icon');
 const authSnackText = document.getElementById('auth-snack-text');
 
 let snackTimer = null;
+
+function showVerifyNotice() {
+    if (verifyNoticeEl) verifyNoticeEl.hidden = false;
+}
+
+function hideVerifyNotice() {
+    if (verifyNoticeEl) verifyNoticeEl.hidden = true;
+}
 
 function showAuthSnack(message, type = 'success') {
     const iconMap = {
@@ -321,10 +337,18 @@ onAuthStateChanged(auth, async (user) => {
         await loadUserStats(user.uid);
         // Sincronizza cronologia da Firestore → localStorage
         await syncHistory(user.uid);
+        // Mostra/nasconde banner verifica email
+        if (!user.emailVerified) {
+            showVerifyNotice();
+        } else {
+            hideVerifyNotice();
+        }
         // Mostra snack solo su login/registrazione attivi, non su ripristino sessione
         if (!isFirstAuthCheck) {
             if (justRegistered) {
-                showAuthSnack('Account creato! Benvenuto 🚀', 'success');
+                showAuthSnack('Account creato! Controlla la tua email per verificare l\'account 📧', 'success');
+            } else if (!user.emailVerified) {
+                showAuthSnack('Accesso effettuato — verifica la tua email per attivare l\'account', 'warning');
             } else {
                 showAuthSnack('Accesso effettuato!', 'success');
             }
@@ -333,6 +357,7 @@ onAuthStateChanged(auth, async (user) => {
         isFirstAuthCheck = false;
         closeModal();
     } else {
+        hideVerifyNotice();
         if (!isFirstAuthCheck) {
             showAuthSnack('Disconnesso con successo', 'info');
         }
@@ -401,7 +426,36 @@ regPasswordInput.addEventListener('input', () => {
     regErrorEl.textContent = '';
 });
 
-const LOGIN_BTN_HTML = '<i class="fa-solid fa-right-to-bracket"></i> ACCEDI';
+const LOGIN_BTN_HTML    = '<i class="fa-solid fa-right-to-bracket"></i> ACCEDI';
+const FORGOT_BTN_HTML   = '<i class="fa-solid fa-key"></i> PASSWORD DIMENTICATA?';
+
+// ── Reset password ────────────────────────────────────────────
+forgotPasswordBtn.addEventListener('click', async () => {
+    const email = loginEmailInput.value.trim();
+    if (!email) {
+        setFieldState(loginEmailInput, loginEmailHintEl, 'error', 'Inserisci la tua email per ricevere il link di reset');
+        loginEmailInput.focus();
+        return;
+    }
+    if (!isValidEmail(email)) {
+        setFieldState(loginEmailInput, loginEmailHintEl, 'error', 'Formato email non valido');
+        loginEmailInput.focus();
+        return;
+    }
+    setBtnLoading(forgotPasswordBtn, true, FORGOT_BTN_HTML);
+    try {
+        await sendPasswordResetEmail(auth, email);
+        showAuthSnack('Email di reset inviata! Controlla la casella 📬', 'success');
+        loginErrorEl.textContent = '';
+        setFieldState(loginEmailInput, loginEmailHintEl, 'valid', '');
+    } catch (err) {
+        const msg = friendlyError(err.code);
+        loginErrorEl.textContent = msg;
+        showAuthSnack(msg, 'error');
+    } finally {
+        setBtnLoading(forgotPasswordBtn, false, FORGOT_BTN_HTML);
+    }
+});
 
 loginSubmitBtn.addEventListener('click', async () => {
     const email    = loginEmailInput.value.trim();
@@ -472,7 +526,11 @@ regSubmitBtn.addEventListener('click', async () => {
     justRegistered = true;
     setBtnLoading(regSubmitBtn, true, REG_BTN_HTML);
     try {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        // Invia email di verifica (non bloccante se fallisce, es. offline)
+        sendEmailVerification(cred.user).catch(e =>
+            console.error('[sendEmailVerification]', e?.message ?? e)
+        );
     } catch (err) {
         justRegistered = false;
         const msg = friendlyError(err.code);
@@ -484,6 +542,20 @@ regSubmitBtn.addEventListener('click', async () => {
         setBtnLoading(regSubmitBtn, false, REG_BTN_HTML);
     }
 });
+
+// ── Rinvia email di verifica ─────────────────────────────────
+resendVerifyBtn?.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+    try {
+        await sendEmailVerification(user);
+        showAuthSnack('Email di verifica inviata! Controlla la casella 📬', 'success');
+    } catch (err) {
+        showAuthSnack(friendlyError(err.code), 'error');
+    }
+});
+
+dismissVerifyBtn?.addEventListener('click', hideVerifyNotice);
 
 // ── Logout ────────────────────────────────────────────────────
 authLogoutBtn.addEventListener('click', () => signOut(auth));
@@ -499,13 +571,15 @@ authLogoutBtn.addEventListener('click', () => signOut(auth));
 // ── Messaggi di errore localizzati ────────────────────────────
 function friendlyError(code) {
     return ({
-        'auth/user-not-found':         'Nessun account trovato con questa email.',
-        'auth/wrong-password':         'Password errata.',
-        'auth/email-already-in-use':   'Email già in uso. Prova ad accedere.',
-        'auth/weak-password':          'Password troppo breve (min. 6 caratteri).',
-        'auth/invalid-email':          'Indirizzo email non valido.',
-        'auth/too-many-requests':      'Troppi tentativi. Riprova tra qualche minuto.',
-        'auth/invalid-credential':     'Credenziali non valide. Controlla email e password.',
-        'auth/network-request-failed': 'Errore di rete. Controlla la connessione.',
+        'auth/user-not-found':           'Nessun account trovato con questa email.',
+        'auth/wrong-password':           'Password errata.',
+        'auth/email-already-in-use':     'Email già in uso. Prova ad accedere.',
+        'auth/weak-password':            'Password troppo breve (min. 6 caratteri).',
+        'auth/invalid-email':            'Indirizzo email non valido.',
+        'auth/too-many-requests':        'Troppi tentativi. Riprova tra qualche minuto.',
+        'auth/invalid-credential':       'Credenziali non valide. Controlla email e password.',
+        'auth/network-request-failed':   'Errore di rete. Controlla la connessione.',
+        'auth/missing-email':            'Inserisci un indirizzo email.',
+        'auth/requires-recent-login':    'Operazione scaduta. Esegui logout e accedi di nuovo.',
     })[code] ?? 'Si è verificato un errore. Riprova.';
 }
