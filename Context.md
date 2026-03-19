@@ -25,7 +25,7 @@ requestPermissions(): Gestisce sblocco Audio e Notifiche al primo clic.
 
 PENDING TASKS:
 
-(Nessun task in attesa)
+(nessuna)
 
 COMPLETED TASKS:
 
@@ -54,7 +54,7 @@ COMPLETED TASKS:
        • "AGGIORNA" → postMessage SKIP_WAITING → controllerchange → reload.
        • "×" → nascondi banner (il SW rimane in attesa per il prossimo reload).
 
-2. ✅ [2026-03-18] Implementata cronologia pomodori guadagnati:
+4. ✅ [2026-03-18] Implementata cronologia pomodori guadagnati:
    - localStorage key: 'pom_history' — array di {ts: timestamp}, max 500 voci.
    - script.js: funzioni savePomodoroToHistory(), getHistory(), renderHistory(),
      updateHistoryBtnVisibility(); addTomato() ora salva ogni pomodoro nello storico.
@@ -76,6 +76,28 @@ COMPLETED TASKS:
        • Polling ogni 30 min con reg.update() per sessioni lunghe.
        • "AGGIORNA" → postMessage SKIP_WAITING → controllerchange → reload.
        • "×" → nascondi banner (il SW rimane in attesa per il prossimo reload).
+
+5. ✅ [2026-03-19] Diagnosticata e fixata la mancata persistenza della cronologia su Firestore:
+   - CAUSA: il catch {} vuoto in savePomodoro (e nelle altre funzioni Firestore) inghiottiva
+     silenziosamente tutti gli errori. I 11 totalPomodoros erano stati scritti da una versione
+     precedente del codice che NON includeva il campo history; le scritture successive con
+     history: arrayUnion(...) potevano fallire (es. Security Rules) senza alcuna traccia.
+   - auth.js: catch {} → catch (e) { console.error('[fn] ...', e?.message ?? e) } in tutte
+     le funzioni Firestore (loadUserStats, savePomodoro, syncHistory, clearFirestoreHistory).
+   - auth.js: aggiunto commento con le Firestore Security Rules necessarie sopra savePomodoro:
+       rules_version = '2';
+       service cloud.firestore {
+         match /databases/{database}/documents {
+           match /users/{userId} {
+             allow read, write: if request.auth != null && request.auth.uid == userId;
+           }
+         }
+       }
+     ⚠️  Se le regole usano hasOnly([...]) assicurarsi che 'history' sia nella lista.
+   - sw.js: BUILD_VERSION aggiornato a '2026-03-19.1' per forzare l'invalidazione del cache
+     del Service Worker e garantire che tutti i client ricevano il codice aggiornato.
+   - AZIONE RICHIESTA: verificare le Firestore Security Rules nel Firebase Console e aggiornarle
+     se necessario per consentire la scrittura del campo 'history'.
 
 IN THE END:
 Eseguire sempre il browser integrato sul link: https://countdown-timer-red-nu.vercel.app/

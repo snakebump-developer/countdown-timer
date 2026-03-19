@@ -223,14 +223,26 @@ async function loadUserStats(uid) {
             await setDoc(ref, { totalPomodoros: 0, createdAt: serverTimestamp() });
             authCountEl.textContent = '0';
         }
-    } catch {
+    } catch (e) {
+        console.error('[loadUserStats] Firestore error:', e?.message ?? e);
         authCountEl.textContent = '—';
     }
 }
 
 // ── Firestore: salva un pomodoro (chiamato da script.js) ──────
-// La cronologia viene salvata come array nel documento utente (non subcollection)
-// così funziona con le Security Rules standard su users/{uid}.
+// La cronologia viene salvata come array nel documento utente (non subcollection).
+//
+// REGOLE FIRESTORE NECESSARIE (Firebase Console → Firestore → Regole):
+//   rules_version = '2';
+//   service cloud.firestore {
+//     match /databases/{database}/documents {
+//       match /users/{userId} {
+//         allow read, write: if request.auth != null && request.auth.uid == userId;
+//       }
+//     }
+//   }
+//
+// Se le regole usano request.resource.data.keys().hasOnly([...]) aggiungere 'history' alla lista.
 window.savePomodoro = async function savePomodoro() {
     const user = auth.currentUser;
     if (!user) return;
@@ -243,8 +255,9 @@ window.savePomodoro = async function savePomodoro() {
             history:        arrayUnion({ ts: Date.now() }),
         }, { merge: true });
         authCountEl.textContent = (parseInt(authCountEl.textContent, 10) || 0) + 1;
-    } catch {
-        // Salvataggio non disponibile (es. offline): il contatore locale rimane invariato
+    } catch (e) {
+        console.error('[savePomodoro] Firestore error:', e?.message ?? e);
+        // Salvataggio non disponibile (es. offline o rules): il contatore locale rimane invariato
     }
 };
 
@@ -277,7 +290,8 @@ async function syncHistory(uid) {
 
         // Aggiorna visibilità pulsante STORICO in script.js
         window.updateHistoryBtnVisibility?.();
-    } catch {
+    } catch (e) {
+        console.error('[syncHistory] Firestore error:', e?.message ?? e);
         // Sync non disponibile (offline): si usa solo la versione locale
     }
 }
@@ -288,7 +302,8 @@ window.clearFirestoreHistory = async function clearFirestoreHistory() {
     if (!user) return;
     try {
         await setDoc(doc(db, 'users', user.uid), { history: [] }, { merge: true });
-    } catch {
+    } catch (e) {
+        console.error('[clearFirestoreHistory] Firestore error:', e?.message ?? e);
         // Pulizia non disponibile (offline): solo locale sarà cancellato
     }
 };
