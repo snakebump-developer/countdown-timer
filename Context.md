@@ -141,6 +141,27 @@ COMPLETED TASKS:
        'auth/account-exists-with-different-credential' → messaggio friendly già gestito.
      • Il flusso di sync Firestore (loadUserStats + syncHistory) è identico per Google e email/password.
 
+8. ✅ [2026-03-19] Implementati Sistema Streak + Profile Panel:
+   File modificati:
+   - auth.js: calcStreak(), calcToday(), updateStreakBadge(), openProfilePanel(), closeProfilePanel().
+   - auth.js: DOM refs per panel (profilePanel, profileBackdrop, profileCloseBtn, profileAvatar, ecc.).
+   - auth.js: updateStreakBadge() chiamato in onAuthStateChanged dopo syncHistory().
+   - auth.js: event listeners panel (auth-profile-btn, close, backdrop, logout, Escape key).
+   - auth.js: window.updateStreakBadge esposto per script.js.
+   - script.js: window.updateStreakBadge?.() chiamato in addTomato() dopo updateHistoryBtnVisibility().
+   - index.html: badge #auth-streak-badge (🔥 count + label STREAK) in auth-bar__user.
+   - index.html: <span class="auth-bar__email"> wrappato in <button class="auth-bar__profile-btn"> con chevron.
+   - index.html: profile panel HTML (#profile-panel) con drawer, avatar, stats (streak/totali/oggi), sezione PROSSIMAMENTE, logout.
+   - style.css: .auth-bar__streak, .auth-bar__streak-count, .auth-bar__streak-label, .auth-bar__profile-btn, .auth-bar__profile-chevron.
+   - style.css: responsive max-width:374px nasconde .auth-bar__streak-label e .auth-bar__profile-chevron.
+   - style.css: sezione .profile-panel completa (drawer desktop 300px + bottom sheet mobile ≤480px).
+   - sw.js: BUILD_VERSION aggiornato a '2026-03-19.4'.
+   NOTE:
+     • Il panel è un right-side drawer su desktop, bottom sheet rounded su mobile.
+     • La sezione PROSSIMAMENTE (Dashboard Statistiche, Obiettivo Giornaliero, Heatmap, Export CSV, Temi, Piano PRO) è opaca (cursor:default, opacity:0.5) per comunicare roadmap senza feature incomplete attive.
+     • calcStreak() tollera il caso "nessun pomodoro oggi": fa partire il conteggio da ieri.
+     • IMPROVEMENTS.md: Sistema Streak marcato [x].
+
 IN THE END:
 Eseguire sempre il browser integrato sul link: https://countdown-timer-red-nu.vercel.app/
 

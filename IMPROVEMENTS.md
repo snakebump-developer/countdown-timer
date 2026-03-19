@@ -20,7 +20,7 @@
 ### Dati & Statistiche (il cuore della retention)
 
 - [ ] **Dashboard statistiche personali** — Pagina dedicata con: focus time totale, media giornaliera, giorno migliore, trend settimanale
-- [ ] **Sistema Streak (giorni consecutivi)** — Mostrare la "striscia" di giorni con almeno 1 pomodoro: principale driver di retention (vedi Duolingo)
+- [x] **Sistema Streak (giorni consecutivi)** — Mostrare la "striscia" di giorni con almeno 1 pomodoro: principale driver di retention (vedi Duolingo)
 - [ ] **Obiettivo giornaliero configurabile** — "Voglio completare X pomodori oggi" con progress bar visibile nel timer
 - [ ] **Heatmap annuale produttività** — Griglia stile GitHub contributions per visualizzare i propri pattern a lungo termine
 

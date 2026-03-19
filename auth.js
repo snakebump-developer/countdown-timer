@@ -78,6 +78,19 @@ const googleRegisterBtn = document.getElementById('google-register-btn');
 
 const googleProvider = new GoogleAuthProvider();
 
+// Ref profile panel + streak badge
+const profilePanel       = document.getElementById('profile-panel');
+const profileBackdrop    = document.getElementById('profile-backdrop');
+const profileCloseBtn    = document.getElementById('profile-close-btn');
+const profileAvatar      = document.getElementById('profile-avatar');
+const profileDisplayName = document.getElementById('profile-display-name');
+const profileEmailSmall  = document.getElementById('profile-email-small');
+const profileStreakVal   = document.getElementById('profile-streak-val');
+const profileTotalVal    = document.getElementById('profile-total-val');
+const profileTodayVal    = document.getElementById('profile-today-val');
+const profileLogoutBtn   = document.getElementById('profile-logout-btn');
+const authStreakCount    = document.getElementById('auth-streak-count');
+
 // ── Auth snack notification ──────────────────────────────
 const authSnackEl   = document.getElementById('auth-snack');
 const authSnackIcon = document.getElementById('auth-snack-icon');
@@ -91,6 +104,68 @@ function showVerifyNotice() {
 
 function hideVerifyNotice() {
     if (verifyNoticeEl) verifyNoticeEl.hidden = true;
+}
+
+// ── Streak & stats helpers ─────────────────────────────────────
+const HISTORY_KEY_LOCAL = 'pom_history';
+
+function calcStreak() {
+    const history = JSON.parse(localStorage.getItem(HISTORY_KEY_LOCAL) || '[]');
+    if (!history.length) return 0;
+    const daySet = new Set(history.map(e => {
+        const d = new Date(e.ts);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }));
+    let streak = 0;
+    const cur = new Date();
+    const todayKey = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`;
+    // Se oggi non ha ancora pomodori, lo streak parte da ieri
+    if (!daySet.has(todayKey)) cur.setDate(cur.getDate() - 1);
+    while (true) {
+        const key = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`;
+        if (!daySet.has(key)) break;
+        streak++;
+        cur.setDate(cur.getDate() - 1);
+    }
+    return streak;
+}
+
+function calcToday() {
+    const history = JSON.parse(localStorage.getItem(HISTORY_KEY_LOCAL) || '[]');
+    const now = new Date();
+    return history.filter(e => {
+        const d = new Date(e.ts);
+        return d.getFullYear() === now.getFullYear() &&
+               d.getMonth()    === now.getMonth()    &&
+               d.getDate()     === now.getDate();
+    }).length;
+}
+
+function updateStreakBadge() {
+    const s = calcStreak();
+    if (authStreakCount) authStreakCount.textContent = s;
+}
+window.updateStreakBadge = updateStreakBadge;
+
+// ── Profile Panel ──────────────────────────────────────────────
+function openProfilePanel(user) {
+    const streak     = calcStreak();
+    const todayCount = calcToday();
+    const total      = parseInt(authCountEl.textContent, 10) || 0;
+    const displayName = user.displayName || user.email?.split('@')[0] || 'Utente';
+    profileAvatar.textContent      = displayName.charAt(0).toUpperCase();
+    profileDisplayName.textContent = user.displayName || user.email?.split('@')[0] || 'Utente';
+    profileEmailSmall.textContent  = user.email || '';
+    profileStreakVal.textContent    = streak;
+    profileTotalVal.textContent    = total;
+    profileTodayVal.textContent    = todayCount;
+    profilePanel.hidden = false;
+    document.body.style.overflow = 'hidden';
+}
+
+function closeProfilePanel() {
+    profilePanel.hidden = true;
+    document.body.style.overflow = '';
 }
 
 function showAuthSnack(message, type = 'success') {
@@ -346,6 +421,8 @@ onAuthStateChanged(auth, async (user) => {
         await loadUserStats(user.uid);
         // Sincronizza cronologia da Firestore → localStorage
         await syncHistory(user.uid);
+        // Aggiorna badge streak in auth-bar (legge da localStorage populato da syncHistory)
+        updateStreakBadge();
         // Google garantisce sempre emailVerified = true; nascondi il banner
         if (!user.emailVerified) {
             showVerifyNotice();
@@ -585,6 +662,18 @@ async function handleGoogleSignIn() {
 
 googleLoginBtn?.addEventListener('click', handleGoogleSignIn);
 googleRegisterBtn?.addEventListener('click', handleGoogleSignIn);
+
+// ── Profile Panel event listeners ─────────────────────────────
+document.getElementById('auth-profile-btn')?.addEventListener('click', () => {
+    const user = auth.currentUser;
+    if (user) openProfilePanel(user);
+});
+profileCloseBtn?.addEventListener('click', closeProfilePanel);
+profileBackdrop?.addEventListener('click', closeProfilePanel);
+profileLogoutBtn?.addEventListener('click', () => { closeProfilePanel(); signOut(auth); });
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && profilePanel && !profilePanel.hidden) closeProfilePanel();
+});
 
 // ── Logout ────────────────────────────────────────────────────
 authLogoutBtn.addEventListener('click', () => signOut(auth));

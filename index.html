@@ -34,6 +34,11 @@
                 <span>ACCEDI</span>
             </button>
             <div class="auth-bar__user" id="auth-user" hidden>
+                <div class="auth-bar__streak" id="auth-streak-badge" title="Giorni consecutivi con almeno 1 pomodoro">
+                    <span class="auth-bar__streak-flame">🔥</span>
+                    <span class="auth-bar__streak-count" id="auth-streak-count">0</span>
+                    <span class="auth-bar__streak-label">STREAK</span>
+                </div>
                 <div class="auth-bar__pomodoros" title="Pomodori totali ottenuti con la Pomodoro Challenge">
                     <svg class="auth-bar__pom-svg" viewBox="0 0 20 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <line x1="10" y1="5.5" x2="10" y2="2" stroke="#00ffaa" stroke-width="1.5" stroke-linecap="round"/>
@@ -46,7 +51,10 @@
                     <span class="auth-bar__pom-count" id="auth-total-count">0</span>
                     <span class="auth-bar__pom-label">POM. TOTALI</span>
                 </div>
-                <span class="auth-bar__email" id="auth-email"></span>
+                <button class="auth-bar__profile-btn" id="auth-profile-btn" aria-label="Apri riepilogo profilo">
+                    <span class="auth-bar__email" id="auth-email"></span>
+                    <i class="fa-solid fa-chevron-right auth-bar__profile-chevron" aria-hidden="true"></i>
+                </button>
                 <button class="auth-bar__logout" id="auth-logout-btn" aria-label="Esci dall'account">
                     <i class="fa-solid fa-right-from-bracket"></i>
                 </button>
@@ -331,6 +339,81 @@
             <button class="update-banner__dismiss" id="update-dismiss-btn" type="button" aria-label="Chiudi">
                 <i class="fa-solid fa-xmark"></i>
             </button>
+        </div>
+
+        <!-- ── Profile Panel ── -->
+        <div class="profile-panel" id="profile-panel" role="dialog" aria-modal="true" aria-labelledby="profile-panel-label" hidden>
+            <div class="profile-panel__backdrop" id="profile-backdrop"></div>
+            <div class="profile-panel__drawer">
+                <div class="profile-panel__top">
+                    <span class="profile-panel__title" id="profile-panel-label">IL TUO PROFILO</span>
+                    <button class="profile-panel__close" id="profile-close-btn" aria-label="Chiudi">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="profile-panel__header">
+                    <div class="profile-panel__avatar" id="profile-avatar">?</div>
+                    <div class="profile-panel__info">
+                        <span class="profile-panel__display-name" id="profile-display-name">Utente</span>
+                        <span class="profile-panel__email-small" id="profile-email-small"></span>
+                    </div>
+                </div>
+                <div class="profile-panel__stats">
+                    <div class="profile-panel__stat">
+                        <span class="profile-panel__stat-val" id="profile-streak-val">0</span>
+                        <span class="profile-panel__stat-lbl">🔥 STREAK</span>
+                    </div>
+                    <div class="profile-panel__stat">
+                        <span class="profile-panel__stat-val" id="profile-total-val">0</span>
+                        <span class="profile-panel__stat-lbl">🍅 TOTALI</span>
+                    </div>
+                    <div class="profile-panel__stat">
+                        <span class="profile-panel__stat-val" id="profile-today-val">0</span>
+                        <span class="profile-panel__stat-lbl">📅 OGGI</span>
+                    </div>
+                </div>
+                <div class="profile-panel__section">
+                    <h3 class="profile-panel__section-title">
+                        <i class="fa-solid fa-rocket"></i> PROSSIMAMENTE
+                    </h3>
+                    <ul class="profile-panel__features">
+                        <li class="profile-panel__feature">
+                            <i class="fa-solid fa-chart-line profile-panel__feat-icon"></i>
+                            <span>Dashboard Statistiche</span>
+                            <span class="profile-panel__feat-tag">PRESTO</span>
+                        </li>
+                        <li class="profile-panel__feature">
+                            <i class="fa-solid fa-bullseye profile-panel__feat-icon"></i>
+                            <span>Obiettivo Giornaliero</span>
+                            <span class="profile-panel__feat-tag">PRESTO</span>
+                        </li>
+                        <li class="profile-panel__feature">
+                            <i class="fa-solid fa-calendar-days profile-panel__feat-icon"></i>
+                            <span>Heatmap Annuale</span>
+                            <span class="profile-panel__feat-tag">PRESTO</span>
+                        </li>
+                        <li class="profile-panel__feature">
+                            <i class="fa-solid fa-file-export profile-panel__feat-icon"></i>
+                            <span>Export CSV / JSON</span>
+                            <span class="profile-panel__feat-tag">PRESTO</span>
+                        </li>
+                        <li class="profile-panel__feature">
+                            <i class="fa-solid fa-palette profile-panel__feat-icon"></i>
+                            <span>Temi Visivi</span>
+                            <span class="profile-panel__feat-tag">PRESTO</span>
+                        </li>
+                        <li class="profile-panel__feature">
+                            <i class="fa-solid fa-crown profile-panel__feat-icon profile-panel__feat-icon--pro"></i>
+                            <span>Piano PRO</span>
+                            <span class="profile-panel__feat-tag profile-panel__feat-tag--pro">PRO</span>
+                        </li>
+                    </ul>
+                </div>
+                <button class="profile-panel__logout-btn" id="profile-logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    DISCONNETTI
+                </button>
+            </div>
         </div>
     </div>
 

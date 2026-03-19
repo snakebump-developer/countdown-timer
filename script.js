@@ -284,6 +284,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Salva nella cronologia locale e aggiorna pulsante
         savePomodoroToHistory();
         updateHistoryBtnVisibility();
+        // Aggiorna badge streak in auth-bar
+        window.updateStreakBadge?.();
         // Salva su Firestore se l'utente è autenticato
         window.savePomodoro?.();
     }
