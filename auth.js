@@ -90,6 +90,7 @@ const profileTotalVal    = document.getElementById('profile-total-val');
 const profileTodayVal    = document.getElementById('profile-today-val');
 const profileLogoutBtn   = document.getElementById('profile-logout-btn');
 const authStreakCount    = document.getElementById('auth-streak-count');
+const authMiniAvatar     = document.getElementById('auth-mini-avatar');
 
 // ── Auth snack notification ──────────────────────────────
 const authSnackEl   = document.getElementById('auth-snack');
@@ -418,6 +419,7 @@ onAuthStateChanged(auth, async (user) => {
         authUserEl.hidden  = false;
         // Mostra nome (Google) o email (email/password)
         authEmailEl.textContent = user.displayName || user.email || '';
+        if (authMiniAvatar) authMiniAvatar.textContent = (user.displayName || user.email || '?').charAt(0).toUpperCase();
         await loadUserStats(user.uid);
         // Sincronizza cronologia da Firestore → localStorage
         await syncHistory(user.uid);
@@ -454,6 +456,7 @@ onAuthStateChanged(auth, async (user) => {
         authOpenBtn.hidden = false;
         authUserEl.hidden  = true;
         authEmailEl.textContent = '';
+        if (authMiniAvatar) authMiniAvatar.textContent = '?';
         authCountEl.textContent = '0';
     }
 });

@@ -1140,25 +1140,51 @@ body {
 .auth-bar__profile-btn {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    background: transparent;
-    border: none;
+    gap: 0.4rem;
+    background: rgba(0, 255, 255, 0.04);
+    border: 1px solid rgba(0, 255, 255, 0.18);
     cursor: pointer;
-    padding: 0.2rem 0.35rem;
-    border-radius: 8px;
-    transition: background 0.2s ease;
+    padding: 0.22rem 0.5rem 0.22rem 0.28rem;
+    border-radius: 50px;
+    transition: all 0.2s ease;
     -webkit-tap-highlight-color: transparent;
-    min-height: 40px;
+    min-height: 36px;
 }
 
 .auth-bar__profile-btn:hover {
-    background: rgba(0, 255, 255, 0.05);
+    background: rgba(0, 255, 255, 0.09);
+    border-color: rgba(0, 255, 255, 0.38);
+}
+
+/* Mini-avatar iniziale nel trigger */
+.auth-bar__mini-avatar {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.22), rgba(255, 0, 255, 0.18));
+    border: 1px solid rgba(0, 255, 255, 0.32);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.52rem;
+    font-weight: 900;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 6px rgba(0, 255, 255, 0.5);
+    flex-shrink: 0;
+    line-height: 1;
 }
 
 .auth-bar__profile-chevron {
-    font-size: 0.5rem;
-    color: rgba(160, 170, 184, 0.3);
+    font-size: 0.48rem;
+    color: rgba(0, 255, 255, 0.38);
     flex-shrink: 0;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.auth-bar__profile-btn:hover .auth-bar__profile-chevron {
+    color: var(--neon-cyan);
 }
 
 /* ── Auth bar responsive ─────────────────────────────────── */
@@ -1189,6 +1215,13 @@ body {
 
     .auth-bar__streak {
         padding: 0.25rem 0.45rem;
+    }
+}
+
+/* Su schermi mobile (≤480px) nascondi il testo email nel trigger, lascia solo l'avatar */
+@media (max-width: 480px) {
+    .auth-bar__profile-btn .auth-bar__email {
+        display: none;
     }
 }
 
@@ -2329,15 +2362,54 @@ body {
     .profile-panel {
         align-items: flex-end;
         justify-content: stretch;
+        overflow: hidden;
     }
 
     .profile-panel__drawer {
         width: 100%;
+        max-width: 100vw;
         height: auto;
-        max-height: 92dvh;
+        max-height: 85dvh;
         border-left: none;
         border-top: 1px solid rgba(0, 255, 255, 0.13);
         border-radius: 20px 20px 0 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        box-sizing: border-box;
+        padding: 1.25rem 1rem;
         padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+        gap: 1rem;
+    }
+
+    /* Handle visivo top del bottom sheet */
+    .profile-panel__top::before {
+        content: '';
+        position: absolute;
+        top: 0.55rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 36px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 2px;
+    }
+
+    .profile-panel__top {
+        position: relative;
+        padding-top: 0.8rem;
+    }
+
+    /* Stats più compatte */
+    .profile-panel__stat-val {
+        font-size: 1.05rem;
+    }
+
+    /* Feature items più compatti */
+    .profile-panel__feature {
+        padding: 0.45rem 0.6rem;
+    }
+
+    .profile-panel__feature span {
+        font-size: 0.65rem;
     }
 }
