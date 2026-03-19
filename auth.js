@@ -319,6 +319,12 @@ async function loadUserStats(uid) {
         const snap = await getDoc(ref);
         if (snap.exists()) {
             authCountEl.textContent = snap.data().totalPomodoros ?? 0;
+            // Ripristina obiettivo giornaliero personalizzato
+            const savedGoal = snap.data().dailyGoal;
+            if (savedGoal) {
+                localStorage.setItem('daily_goal', savedGoal);
+                window.updateDailyGoalDisplay?.();
+            }
         } else {
             await setDoc(ref, { totalPomodoros: 0, createdAt: serverTimestamp() });
             authCountEl.textContent = '0';
@@ -409,7 +415,16 @@ window.clearFirestoreHistory = async function clearFirestoreHistory() {
         // Pulizia non disponibile (offline): solo locale sarà cancellato
     }
 };
-
+// ── Firestore: salva obiettivo giornaliero (chiamato da script.js) ──
+window.saveDailyGoalToFirestore = async function(goal) {
+    const user = auth.currentUser;
+    if (!user) return;
+    try {
+        await setDoc(doc(db, 'users', user.uid), { dailyGoal: goal }, { merge: true });
+    } catch (e) {
+        console.error('[saveDailyGoalToFirestore] Firestore error:', e?.message ?? e);
+    }
+};
 // ── Flags per notifiche auth ───────────────────────────
 let justRegistered   = false;
 let isFirstAuthCheck = true;

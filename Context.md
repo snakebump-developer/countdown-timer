@@ -162,7 +162,7 @@ COMPLETED TASKS:
      • calcStreak() tollera il caso "nessun pomodoro oggi": fa partire il conteggio da ieri.
      • IMPROVEMENTS.md: Sistema Streak marcato [x].
 
-9. ✅ [2026-03-19] Implementata Dashboard Statistiche + Obiettivo Giornaliero:
+9. ✅ [2026-03-19] Implementata Dashboard Statistiche + Obiettivo Giornaliero (+ bugfix 9.1):
    File modificati:
    - script.js: aggiunto DAILY_GOAL_KEY ('daily_goal'), DEFAULT 8. Funzioni:
      • getDailyGoal() / getTodayCount() — recupero dati.
@@ -189,6 +189,20 @@ COMPLETED TASKS:
      blocco .stats-modal (bottom-sheet mobile / modale centrato ≥480px, stesso pattern di pom-hist),
      KPI grid, focus-time, row2 (media + giorno migliore), goal-section, chart (bars 7 giorni).
    - sw.js: BUILD_VERSION aggiornato a '2026-03-19.5'.
+   BUGFIX 9.1 [2026-03-19] — 5 bug risolti post-deploy:
+   - BUG CRITICO (Temporal Dead Zone): DAILY_GOAL_KEY e DAILY_GOAL_DEF erano dichiarate
+     come `const` alla riga ~245 ma chiamate da updateDailyGoal() all'init (riga ~80).
+     In JS i `const` non sono accessibili prima della loro dichiarazione (TDZ) → ReferenceError
+     che bloccava tutta l'esecuzione del DOMContentLoaded (nessun event listener veniva attaccato).
+     FIX: spostati DAILY_GOAL_KEY/DAILY_GOAL_DEF nella sezione costanti in cima allo script.
+   - Bottoni STORICO+STATISTICHE ora affiancati: wrappati in <div class="timer-action-btns">
+     con display:flex; gap:0.75rem. Rimossi margin-top individuali.
+   - Pulsante matita: aggiunto e.stopPropagation() per evitare che l'handler document-click
+     chiudesse il form immediatamente. Touch target aumentato a min-width/height: 44px.
+   - Firebase persistence daily goal: window.saveDailyGoalToFirestore() aggiunto in auth.js
+     (setDoc con merge:true sul campo dailyGoal del doc utente). Chiamato da saveDailyGoal()
+     in script.js. Al login, loadUserStats() ripristina il valore da Firestore in localStorage.
+   - sw.js: BUILD_VERSION aggiornato a '2026-03-19.6'.
    DESIGN:
      • Dashboard: bottom-sheet su mobile, modale centrato (max 560px) su ≥480px, animazione hist-slide-up.
      • Widget obiettivo: sempre visibile nell'area timer, pill con progress bar cyan→verde.

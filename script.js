@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const CIRCUMFERENCE = 2 * Math.PI * 45; // ≈ 282.74 (r=45, viewBox 100×100)
     const HISTORY_KEY   = 'pom_history';
     const HISTORY_MAX   = 500;
+    const DAILY_GOAL_KEY = 'daily_goal';
+    const DAILY_GOAL_DEF = 8;
 
     // State
     let totalSeconds = 300;
@@ -242,9 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Daily Goal ────────────────────────────────────────────────
 
-    const DAILY_GOAL_KEY  = 'daily_goal';
-    const DAILY_GOAL_DEF  = 8;
-
     function getDailyGoal() {
         return Math.max(1, parseInt(localStorage.getItem(DAILY_GOAL_KEY) || DAILY_GOAL_DEF, 10));
     }
@@ -281,7 +280,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.updateDailyGoalDisplay = updateDailyGoal;
 
     // Daily goal form toggle
-    dailyGoalEditBtn.addEventListener('click', () => {
+    dailyGoalEditBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Previene la chiusura immediata dall'handler document
         const isOpen = !dailyGoalForm.hidden;
         if (isOpen) {
             dailyGoalForm.hidden = true;
@@ -296,6 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveDailyGoal() {
         const v = Math.max(1, Math.min(50, parseInt(dailyGoalInput.value, 10) || DAILY_GOAL_DEF));
         localStorage.setItem(DAILY_GOAL_KEY, v);
+        window.saveDailyGoalToFirestore?.(v); // Persiste su Firestore se loggato
         dailyGoalForm.hidden = true;
         updateDailyGoal();
     }
