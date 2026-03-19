@@ -151,9 +151,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Pomodoro History (localStorage) ──────────────────────────
 
-    function savePomodoroToHistory() {
+    function savePomodoroToHistory(durSec) {
         const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
-        history.push({ ts: Date.now() });
+        history.push({ ts: Date.now(), dur: durSec || 1500 });
         if (history.length > HISTORY_MAX) history.splice(0, history.length - HISTORY_MAX);
         localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
     }
@@ -350,8 +350,8 @@ document.addEventListener('DOMContentLoaded', () => {
             bestLabel = new Date(y, m, d).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'short' });
         }
 
-        // Focus time totale (25 min per pomodoro standard)
-        const focusMins  = total * 25;
+        // Focus time effettivo: usa la durata salvata se disponibile, altrimenti 25 min di default
+        const focusMins  = Math.round(history.reduce((acc, e) => acc + (e.dur ? e.dur / 60 : 25), 0));
         const focusHours = Math.floor(focusMins / 60);
         const focusMinR  = focusMins % 60;
 
@@ -413,7 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="stats-modal__focus-time">
                 <span class="stats-modal__focus-label">⏱ FOCUS TIME TOTALE</span>
                 <span class="stats-modal__focus-val">${s.focusHours}h ${String(s.focusMinR).padStart(2,'0')}m</span>
-                <span class="stats-modal__focus-note">Calcolato su 25 min per pomodoro</span>
+                <span class="stats-modal__focus-note">Basato sulla durata effettiva di ogni sessione</span>
             </div>
             <div class="stats-modal__row2">
                 <div class="stats-modal__sub">
@@ -521,14 +521,14 @@ document.addEventListener('DOMContentLoaded', () => {
         item.setAttribute('title', `Pomodoro #${pomCount}`);
         tomatoesTray.appendChild(item);
         // Salva nella cronologia locale e aggiorna pulsante
-        savePomodoroToHistory();
+        savePomodoroToHistory(totalSeconds);
         updateHistoryBtnVisibility();
         // Aggiorna obiettivo giornaliero
         updateDailyGoal();
         // Aggiorna badge streak in auth-bar
         window.updateStreakBadge?.();
         // Salva su Firestore se l'utente è autenticato
-        window.savePomodoro?.();
+        window.savePomodoro?.(totalSeconds);
     }
 
     // Blocca il click sul display durante la modalità pomodoro

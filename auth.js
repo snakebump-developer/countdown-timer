@@ -349,7 +349,7 @@ async function loadUserStats(uid) {
 //   }
 //
 // Se le regole usano request.resource.data.keys().hasOnly([...]) aggiungere 'history' alla lista.
-window.savePomodoro = async function savePomodoro() {
+window.savePomodoro = async function savePomodoro(durSec) {
     const user = auth.currentUser;
     if (!user) return;
     try {
@@ -358,7 +358,7 @@ window.savePomodoro = async function savePomodoro() {
         await setDoc(ref, {
             totalPomodoros: increment(1),
             lastSession:    serverTimestamp(),
-            history:        arrayUnion({ ts: Date.now() }),
+            history:        arrayUnion({ ts: Date.now(), dur: durSec || 1500 }),
         }, { merge: true });
         authCountEl.textContent = (parseInt(authCountEl.textContent, 10) || 0) + 1;
     } catch (e) {
