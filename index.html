@@ -53,6 +53,16 @@
             </div>
         </div>
 
+        <!-- ── Email verification notice ── -->
+        <div class="verify-notice" id="verify-notice" role="alert" hidden>
+            <i class="fa-solid fa-envelope-open-text verify-notice__icon"></i>
+            <span class="verify-notice__text">EMAIL NON VERIFICATA</span>
+            <button class="verify-notice__btn" id="resend-verify-btn" type="button">RINVIA EMAIL</button>
+            <button class="verify-notice__dismiss" id="dismiss-verify-btn" type="button" aria-label="Chiudi avviso">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
         <!-- ── Pomodoro switch ── -->
         <div class="pom-switch">
             <i class="pom-switch__icon fa-solid fa-fire-flame-curved"></i>
@@ -245,6 +255,9 @@
                     <p class="auth-modal__error" id="login-error" aria-live="polite" role="alert"></p>
                     <button class="auth-modal__submit" id="login-submit">
                         <i class="fa-solid fa-right-to-bracket"></i> ACCEDI
+                    </button>
+                    <button type="button" id="forgot-password-btn" class="auth-modal__link">
+                        <i class="fa-solid fa-key"></i> PASSWORD DIMENTICATA?
                     </button>
                 </div>
 

@@ -13,9 +13,9 @@
 ### Autenticazione & Account
 
 - [ ] **Login con Google (OAuth)** — Abbassare la barriera di entry: un tap invece di email+password riduce abbandoni del ~60%
-- [ ] **Reset password via email** — Feature mancante che blocca utenti che dimenticano la password
+- [x] **Reset password via email** — Feature mancante che blocca utenti che dimenticano la password
 - [ ] **Account linking anonimo→registrato** — Permettere di convertire una sessione anonima in account senza perdere dati locali
-- [ ] **Verifica email** — Inviare email di verifica alla registrazione per ridurre spam e aumentare fiducia
+- [x] **Verifica email** — Inviare email di verifica alla registrazione per ridurre spam e aumentare fiducia
 
 ### Dati & Statistiche (il cuore della retention)
 

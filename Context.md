@@ -23,10 +23,6 @@ enter/exitPomodoroMode(): Switch di stato e reset UI.
 
 requestPermissions(): Gestisce sblocco Audio e Notifiche al primo clic.
 
-PENDING TASKS:
-
-(nessuna)
-
 COMPLETED TASKS:
 
 1. ✅ [2026-03-18] Migliorato l'aggiornamento PWA su iPhone.
@@ -98,6 +94,31 @@ COMPLETED TASKS:
      del Service Worker e garantire che tutti i client ricevano il codice aggiornato.
    - AZIONE RICHIESTA: verificare le Firestore Security Rules nel Firebase Console e aggiornarle
      se necessario per consentire la scrittura del campo 'history'.
+
+6. ✅ [2026-03-19] Implementati Reset Password e Verifica Email:
+   - auth.js: import aggiuntivi sendPasswordResetEmail, sendEmailVerification.
+   - auth.js: aggiunte funzioni showVerifyNotice() / hideVerifyNotice() per il banner #verify-notice.
+   - auth.js: handler forgot-password-btn → sendPasswordResetEmail(auth, email); usa l'email già nel campo login;
+     se vuoto/non valido mostra hint d'errore inline senza aprire nessun modal extra.
+   - auth.js: registrazione → cattura UserCredential da createUserWithEmailAndPassword,
+     chiama sendEmailVerification(cred.user) in background (non bloccante, errori loggati).
+   - auth.js: onAuthStateChanged → dopo login controlla user.emailVerified:
+     • false → showVerifyNotice() + snack 'warning' "verifica la tua email per attivare l'account"
+     • true  → hideVerifyNotice() + snack 'success' normale
+     • registrazione (justRegistered) → snack 'success' con invito a verificare email
+   - auth.js: handler resend-verify-btn → sendEmailVerification(auth.currentUser).
+   - auth.js: handler dismiss-verify-btn → hideVerifyNotice().
+   - auth.js: friendlyError aggiornato con 'auth/missing-email' e 'auth/requires-recent-login'.
+   - index.html: aggiunto #forgot-password-btn (.auth-modal__link) nel panel-login sotto il submit.
+   - index.html: aggiunto #verify-notice (.verify-notice) tra auth-bar e pom-switch.
+   - style.css: aggiunto .auth-modal__link (bottone testo discreto per password dimenticata).
+   - style.css: aggiunto .verify-notice e child elements (pill giallo stile update-banner in-flow).
+   - sw.js: BUILD_VERSION aggiornato a '2026-03-19.2'.
+   COMPORTAMENTO ACCOUNT GIÀ REGISTRATI:
+     • user.emailVerified = false → alla loro prossima login vedranno il banner giallo "EMAIL NON VERIFICATA"
+       con pulsante "RINVIA EMAIL" per ricevere una nuova email di verifica.
+     • L'app rimane completamente accessibile — la verifica è informativa, non bloccante.
+     • Una volta verificata l'email, il banner scompare definitivamente.
 
 IN THE END:
 Eseguire sempre il browser integrato sul link: https://countdown-timer-red-nu.vercel.app/

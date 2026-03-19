@@ -1138,6 +1138,82 @@ body {
 }
 
 /* ======================================
+   EMAIL VERIFICATION NOTICE
+====================================== */
+
+.verify-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    margin: -0.75rem auto 0.75rem;
+    padding: 0.4rem 0.85rem;
+    max-width: fit-content;
+    background: rgba(255, 200, 0, 0.07);
+    border: 1px solid rgba(255, 200, 0, 0.28);
+    border-radius: 50px;
+    color: #ffc700;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.verify-notice[hidden] {
+    display: none;
+}
+
+.verify-notice__icon {
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+
+.verify-notice__text {
+    flex-shrink: 0;
+}
+
+.verify-notice__btn {
+    background: rgba(255, 200, 0, 0.15);
+    border: 1px solid rgba(255, 200, 0, 0.35);
+    color: #ffc700;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.48rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 0.25rem 0.65rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.verify-notice__btn:hover {
+    background: rgba(255, 200, 0, 0.28);
+    box-shadow: 0 0 10px rgba(255, 200, 0, 0.25);
+}
+
+.verify-notice__dismiss {
+    background: transparent;
+    border: none;
+    color: rgba(255, 200, 0, 0.45);
+    cursor: pointer;
+    padding: 0.15rem 0.3rem;
+    font-size: 0.7rem;
+    line-height: 1;
+    transition: color 0.2s;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.verify-notice__dismiss:hover {
+    color: #ffc700;
+}
+
+/* ======================================
    AUTH MODAL
 ====================================== */
 
@@ -1349,6 +1425,37 @@ body {
     pointer-events: none;
     opacity: 0.65;
     letter-spacing: 0;
+}
+
+/* Link discreto sotto il bottone (es. Password dimenticata?) */
+.auth-modal__link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: rgba(160, 170, 184, 0.55);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.52rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    padding: 0.4rem 0;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.auth-modal__link:hover {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 8px rgba(0, 255, 255, 0.35);
+}
+
+.auth-modal__link:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 /* Input stati errore / valido */
