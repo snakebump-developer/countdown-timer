@@ -409,7 +409,7 @@ body {
 }
 
 .pom-config--visible {
-    max-height: 220px;
+    max-height: 280px;
     opacity: 1;
     margin-bottom: 1.25rem;
     pointer-events: auto;
@@ -538,6 +538,139 @@ body {
     border-color: var(--neon-cyan);
     color: var(--neon-cyan);
     box-shadow: 0 0 14px rgba(0, 255, 255, 0.35), inset 0 0 8px rgba(0, 255, 255, 0.08);
+}
+
+/* ======================================
+   WHEEL PICKER (solo touch / mobile)
+====================================== */
+
+/* Desktop e hover-capable: nasconde il picker, mostra gli input classici */
+.pom-wheel-picker { display: none; }
+.pom-config__desktop { display: contents; }
+
+/* Touch device: mostra picker, nasconde input classici */
+@media (hover: none) {
+    .pom-config__desktop { display: none; }
+
+    .pom-wheel-picker {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .pom-wheel-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .pom-wheel-col__label {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.55rem;
+        font-weight: 700;
+        color: var(--neon-pink);
+        letter-spacing: 1px;
+    }
+
+    .pom-wheel-col__drums {
+        display: flex;
+        align-items: center;
+        gap: 0.15rem;
+        background: var(--glass-bg);
+        border: 1px solid rgba(255, 0, 255, 0.22);
+        border-radius: 12px;
+        padding: 0.25rem 0.35rem;
+        backdrop-filter: blur(10px);
+        position: relative;
+    }
+
+    /* Righe di selezione — highlight centrale */
+    .pom-wheel-col__drums::before {
+        content: '';
+        position: absolute;
+        left: 0.35rem;
+        right: 0.35rem;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 2.2rem;
+        border-top: 1px solid rgba(255, 0, 255, 0.45);
+        border-bottom: 1px solid rgba(255, 0, 255, 0.45);
+        pointer-events: none;
+        border-radius: 4px;
+        background: rgba(255, 0, 255, 0.06);
+        z-index: 1;
+    }
+
+    .pom-wheel-col__colon {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: rgba(255, 0, 255, 0.55);
+        line-height: 1;
+        user-select: none;
+        z-index: 2;
+    }
+
+    .pom-wheel-col__unit {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.55rem;
+        color: var(--text-secondary);
+    }
+
+    .pom-wheel-drum {
+        width: 2.4rem;
+        height: 6.6rem; /* 3 item da 2.2rem */
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        position: relative;
+        z-index: 2;
+    }
+
+    .pom-wheel-drum::-webkit-scrollbar { display: none; }
+
+    .pom-wheel-drum__item {
+        height: 2.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        scroll-snap-align: center;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.35);
+        transition: color 0.15s ease;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    /* Item centrale (selezionato) */
+    .pom-wheel-drum__item--selected {
+        color: #fff;
+        text-shadow: 0 0 10px rgba(255, 0, 255, 0.9);
+    }
+
+    /* Sfuma items periferici */
+    .pom-wheel-drum__item:first-child,
+    .pom-wheel-drum__item:nth-child(2):not(.pom-wheel-drum__item--selected),
+    .pom-wheel-drum__item:nth-last-child(2):not(.pom-wheel-drum__item--selected),
+    .pom-wheel-drum__item:last-child {
+        color: rgba(255, 255, 255, 0.2);
+    }
+
+    .pom-wheel-divider {
+        color: rgba(255, 0, 255, 0.4);
+        font-size: 0.75rem;
+        flex-shrink: 0;
+        padding-top: 0.5rem;
+    }
 }
 
 /* ======================================

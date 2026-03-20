@@ -314,6 +314,129 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ── Wheel Picker (solo touch / mobile) ────────────────────────
+
+    // Rileva se il dispositivo è touch-only (stessa logica del CSS hover:none)
+    const isTouchDevice = () => window.matchMedia('(hover: none)').matches;
+
+    /**
+     * Costruisce un drum-scroller per un singolo valore numerico.
+     * @param {HTMLElement} drumEl   - contenitore .pom-wheel-drum
+     * @param {HTMLElement} inputEl  - <input type=number> nascosto da sincronizzare
+     * @param {number}      min      - valore minimo
+     * @param {number}      max      - valore massimo
+     */
+    function buildDrum(drumEl, inputEl, min, max) {
+        const ITEM_H = 35.2; // 2.2rem × 16px (corrispondente al CSS)
+
+        // Svuota e popola
+        drumEl.innerHTML = '';
+        // Padding: 1 item top + 1 bottom affinché lo snap funzioni su tutti i valori
+        const padStart = document.createElement('div');
+        padStart.className = 'pom-wheel-drum__item pom-wheel-drum__item--pad';
+        padStart.setAttribute('aria-hidden', 'true');
+        drumEl.appendChild(padStart);
+
+        for (let i = min; i <= max; i++) {
+            const item = document.createElement('div');
+            item.className = 'pom-wheel-drum__item';
+            item.textContent = String(i).padStart(2, '0');
+            item.dataset.value = i;
+            item.setAttribute('role', 'option');
+            item.setAttribute('aria-selected', 'false');
+            drumEl.appendChild(item);
+        }
+
+        const padEnd = document.createElement('div');
+        padEnd.className = 'pom-wheel-drum__item pom-wheel-drum__item--pad';
+        padEnd.setAttribute('aria-hidden', 'true');
+        drumEl.appendChild(padEnd);
+
+        // Scorri al valore corrente dell'input (senza animazione)
+        function scrollToValue(val, smooth) {
+            const idx = Math.max(min, Math.min(max, val)) - min; // 0-based dentro i reali
+            drumEl.scrollTo({
+                top: idx * ITEM_H,
+                behavior: smooth ? 'smooth' : 'instant'
+            });
+        }
+
+        // Aggiorna classe --selected e l'input nascosto in base alla posizione scroll
+        function syncFromScroll() {
+            const idx = Math.round(drumEl.scrollTop / ITEM_H);
+            const val = Math.max(min, Math.min(max, idx + min));
+
+            // Aggiorna input
+            inputEl.value = val;
+            inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+
+            // Aggiorna classi visive
+            const items = drumEl.querySelectorAll('.pom-wheel-drum__item[data-value]');
+            items.forEach(el => {
+                const isSelected = Number(el.dataset.value) === val;
+                el.classList.toggle('pom-wheel-drum__item--selected', isSelected);
+                el.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+            });
+        }
+
+        // Listener scroll (throttled con requestAnimationFrame)
+        let rafId = null;
+        drumEl.addEventListener('scroll', () => {
+            if (rafId) return;
+            rafId = requestAnimationFrame(() => {
+                syncFromScroll();
+                rafId = null;
+            });
+        }, { passive: true });
+
+        // Tap su un item: scorri verso di esso
+        drumEl.addEventListener('click', (e) => {
+            const item = e.target.closest('.pom-wheel-drum__item[data-value]');
+            if (!item) return;
+            scrollToValue(Number(item.dataset.value), true);
+        });
+
+        // Inizializzazione
+        const initVal = parseInt(inputEl.value, 10) || min;
+        scrollToValue(initVal, false);
+        syncFromScroll();
+
+        // Espone un metodo per aggiornare il drum da codice
+        drumEl._setVal = (v) => scrollToValue(v, false);
+    }
+
+    // Inizializza i 4 drum quando la sezione diventa visibile per la prima volta
+    let wheelsBuilt = false;
+
+    function initWheels() {
+        if (!isTouchDevice() || wheelsBuilt) return;
+        wheelsBuilt = true;
+        buildDrum(document.getElementById('wheel-work-min'),  pomWorkMinInput,  0, 120);
+        buildDrum(document.getElementById('wheel-work-sec'),  pomWorkSecInput,  0, 59);
+        buildDrum(document.getElementById('wheel-break-min'), pomBreakMinInput, 0, 60);
+        buildDrum(document.getElementById('wheel-break-sec'), pomBreakSecInput, 0, 59);
+    }
+
+    // Aggiorna i drum se i valori degli input vengono cambiati da codice
+    window.syncWheelsFromInputs = function () {
+        if (!wheelsBuilt) return;
+        const wheelWorkMin  = document.getElementById('wheel-work-min');
+        const wheelWorkSec  = document.getElementById('wheel-work-sec');
+        const wheelBreakMin = document.getElementById('wheel-break-min');
+        const wheelBreakSec = document.getElementById('wheel-break-sec');
+        if (wheelWorkMin._setVal)  wheelWorkMin._setVal(parseInt(pomWorkMinInput.value,  10) || 0);
+        if (wheelWorkSec._setVal)  wheelWorkSec._setVal(parseInt(pomWorkSecInput.value,  10) || 0);
+        if (wheelBreakMin._setVal) wheelBreakMin._setVal(parseInt(pomBreakMinInput.value, 10) || 0);
+        if (wheelBreakSec._setVal) wheelBreakSec._setVal(parseInt(pomBreakSecInput.value, 10) || 0);
+    };
+
+    // Costruisce i drum la prima volta che la pom-config diventa visibile
+    pomToggle.addEventListener('change', () => {
+        if (pomToggle.checked) initWheels();
+    });
+    // Fallback: costruisce se il pom-config era già visibile all'avvio
+    if (pomToggle.checked) initWheels();
+
     // ── Dashboard Statistiche ─────────────────────────────────────
 
     function calcStats() {

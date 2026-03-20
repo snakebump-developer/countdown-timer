@@ -210,6 +210,29 @@ COMPLETED TASKS:
      • Grafico 7 giorni: barre CSS pure (height%), oggi evidenziato in cyan.
      • Nessuna dipendenza esterna: tutto calcolato da localStorage 'pom_history'.
 
+10. ✅ [2026-03-20] Implementato Wheel Picker per dispositivi mobile (touch):
+   - index.html: aggiunto .pom-config__desktop (wrapper flex contents) per gli input classici;
+     aggiunto #pom-wheel-picker (.pom-wheel-picker) con due .pom-wheel-col (FOCUS e BREAK),
+     ognuna con due .pom-wheel-drum (minuti e secondi) collegati agli input[type=number] esistenti.
+   - style.css: .pom-config__desktop display:contents su desktop; display:none con @media (hover:none).
+     .pom-wheel-picker display:none su desktop; display:flex con @media (hover:none).
+     .pom-wheel-drum: scroll-snap-type y mandatory, height 6.6rem (3 item da 2.2rem).
+     .pom-wheel-drum__item: scroll-snap-align center, highlight centrale via ::before border lines.
+     .pom-wheel-drum__item--selected: color:#fff + text-shadow neon rosa.
+     .pom-config--visible max-height aumentato a 280px per ospitare il picker.
+   - script.js: funzione buildDrum(drumEl, inputEl, min, max):
+       • Popola il drum con item + padding top/bottom per lo snap edge.
+       • syncFromScroll(): legge scrollTop → aggiorna input hidden → dispatcha Event('change').
+       • Listener scroll (throttled RAF) + click su item per scroll smooth.
+       • drumEl._setVal(v) per aggiornamento programmatico.
+     initWheels(): costruisce i 4 drum alla prima apertura in modalità touch (lazy init).
+     window.syncWheelsFromInputs: esposto per eventuali aggiornamenti da codice esterno.
+     pomToggle change listener: chiama initWheels() al primo attivazione pomodoro.
+   - Compatibilità: su desktop/laptop gli input numerici classici restano visibili e funzionali;
+     su mobile/tablet (hover:none) il picker sostituisce visivamente gli input, che restano
+     nel DOM come source-of-truth usati da getPomWorkSec() e getPomBreakSec().
+   - sw.js: BUILD_VERSION aggiornato a '2026-03-20.1'.
+
 IN THE END:
 Eseguire sempre il browser integrato sul link: https://countdown-timer-red-nu.vercel.app/
 

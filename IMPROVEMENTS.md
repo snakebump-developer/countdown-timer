@@ -71,6 +71,8 @@
 - [ ] **Error tracking in produzione (Sentry)** — Ricevere notifiche automatiche per errori JS non gestiti in produzione senza dover guardare i log
 - [ ] **Lighthouse score ≥90 su tutte le categorie** — Performance, Accessibility, Best Practices, SEO: audit completo e fix puntuali
 - [ ] **Favicon PNG in più risoluzioni** — Aggiungere fallback PNG oltre agli SVG nel manifest per massima compatibilità (Samsung Internet, vecchi Android)
+- [x] **Wheel Picker per dispositivi mobile** — implementare la gestione della modifica del tempo minuti secondi della pomodoro challenge tramite wheel picker di ios e android sui dispositvi mobile e tablet così da rendere più fluida la modifica e veloce in linea con il design.
+Se possibile far stare sia focus che break sullo stesso asse di modifica.
 
 ### Accessibilità
 
@@ -128,4 +130,4 @@
 
 ---
 
-*Ultimo aggiornamento: 2026-03-19 (Sprint 1 completato)*
+*Ultimo aggiornamento: 2026-03-20 (Wheel Picker mobile implementato)*

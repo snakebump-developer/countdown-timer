@@ -84,29 +84,61 @@
 
         <!-- ── Pomodoro config (si rivela allo switch) ── -->
         <div class="pom-config" id="pom-config" aria-hidden="true">
-            <div class="pom-config__field">
-                <label class="pom-config__label" for="pom-work-min">
-                    <i class="fa-solid fa-brain"></i> FOCUS
-                </label>
-                <div class="pom-config__time">
-                    <input type="number" id="pom-work-min" class="pom-config__input" value="25" min="0" max="120" aria-label="Minuti focus">
-                    <span class="pom-config__colon">:</span>
-                    <input type="number" id="pom-work-sec" class="pom-config__input" value="00" min="0" max="59" aria-label="Secondi focus">
+
+            <!-- Input numerici classici (visibili su desktop, nascosti su touch) -->
+            <div class="pom-config__desktop">
+                <div class="pom-config__field">
+                    <label class="pom-config__label" for="pom-work-min">
+                        <i class="fa-solid fa-brain"></i> FOCUS
+                    </label>
+                    <div class="pom-config__time">
+                        <input type="number" id="pom-work-min" class="pom-config__input" value="25" min="0" max="120" aria-label="Minuti focus">
+                        <span class="pom-config__colon">:</span>
+                        <input type="number" id="pom-work-sec" class="pom-config__input" value="00" min="0" max="59" aria-label="Secondi focus">
+                    </div>
+                    <span class="pom-config__unit">mm:ss</span>
                 </div>
-                <span class="pom-config__unit">mm:ss</span>
-            </div>
-            <span class="pom-config__sep"><i class="fa-solid fa-right-left"></i></span>
-            <div class="pom-config__field">
-                <label class="pom-config__label" for="pom-break-min">
-                    <i class="fa-solid fa-mug-hot"></i> BREAK
-                </label>
-                <div class="pom-config__time">
-                    <input type="number" id="pom-break-min" class="pom-config__input" value="5" min="0" max="60" aria-label="Minuti break">
-                    <span class="pom-config__colon">:</span>
-                    <input type="number" id="pom-break-sec" class="pom-config__input" value="00" min="0" max="59" aria-label="Secondi break">
+                <span class="pom-config__sep"><i class="fa-solid fa-right-left"></i></span>
+                <div class="pom-config__field">
+                    <label class="pom-config__label" for="pom-break-min">
+                        <i class="fa-solid fa-mug-hot"></i> BREAK
+                    </label>
+                    <div class="pom-config__time">
+                        <input type="number" id="pom-break-min" class="pom-config__input" value="5" min="0" max="60" aria-label="Minuti break">
+                        <span class="pom-config__colon">:</span>
+                        <input type="number" id="pom-break-sec" class="pom-config__input" value="00" min="0" max="59" aria-label="Secondi break">
+                    </div>
+                    <span class="pom-config__unit">mm:ss</span>
                 </div>
-                <span class="pom-config__unit">mm:ss</span>
             </div>
+
+            <!-- ── Wheel Picker (solo touch / mobile) ── -->
+            <div class="pom-wheel-picker" id="pom-wheel-picker" aria-label="Imposta durata Focus e Break">
+                <!-- FOCUS -->
+                <div class="pom-wheel-col">
+                    <span class="pom-wheel-col__label"><i class="fa-solid fa-brain"></i> FOCUS</span>
+                    <div class="pom-wheel-col__drums">
+                        <div class="pom-wheel-drum" id="wheel-work-min" role="listbox" aria-label="Minuti focus"></div>
+                        <span class="pom-wheel-col__colon">:</span>
+                        <div class="pom-wheel-drum" id="wheel-work-sec" role="listbox" aria-label="Secondi focus"></div>
+                    </div>
+                    <span class="pom-wheel-col__unit">min : sec</span>
+                </div>
+
+                <span class="pom-wheel-divider" aria-hidden="true"><i class="fa-solid fa-right-left"></i></span>
+
+                <!-- BREAK -->
+                <div class="pom-wheel-col">
+                    <span class="pom-wheel-col__label"><i class="fa-solid fa-mug-hot"></i> BREAK</span>
+                    <div class="pom-wheel-col__drums">
+                        <div class="pom-wheel-drum" id="wheel-break-min" role="listbox" aria-label="Minuti break"></div>
+                        <span class="pom-wheel-col__colon">:</span>
+                        <div class="pom-wheel-drum" id="wheel-break-sec" role="listbox" aria-label="Secondi break"></div>
+                    </div>
+                    <span class="pom-wheel-col__unit">min : sec</span>
+                </div>
+            </div>
+
             <span class="pom-config__sep pom-config__sep--full"><i class="fa-solid fa-repeat"></i></span>
             <div class="pom-config__field pom-config__field--cycles">
                 <label class="pom-config__label" for="pom-cycles">
