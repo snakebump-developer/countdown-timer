@@ -22,7 +22,7 @@
 - [x] **Dashboard statistiche personali** — Pagina dedicata con: focus time totale, media giornaliera, giorno migliore, trend settimanale
 - [x] **Sistema Streak (giorni consecutivi)** — Mostrare la "striscia" di giorni con almeno 1 pomodoro: principale driver di retention (vedi Duolingo)
 - [x] **Obiettivo giornaliero configurabile** — "Voglio completare X pomodori oggi" con progress bar visibile nel timer
-- [ ] **Heatmap annuale produttività** — Griglia stile GitHub contributions per visualizzare i propri pattern a lungo termine
+- [x] **Heatmap annuale produttività** — Griglia stile GitHub contributions per visualizzare i propri pattern a lungo termine
 
 ### Acquisizione & Distribuzione
 
@@ -131,4 +131,4 @@ Se possibile far stare sia focus che break sullo stesso asse di modifica.
 
 ---
 
-*Ultimo aggiornamento: 2026-03-20 (Wheel Picker mobile implementato)*
+*Ultimo aggiornamento: 2026-03-20 (Heatmap annuale produttività implementata)*

@@ -3239,3 +3239,168 @@ body {
     .stats-modal__focus-val { font-size: 1.3rem; }
     .daily-goal { max-width: 100%; }
 }
+
+/* ── Heatmap Annuale Produttività ──────────────────────────── */
+.stats-modal__heatmap-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem 0.85rem 0.8rem;
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.055);
+    border-radius: 14px;
+}
+
+.stats-modal__heatmap-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.heatmap__year-count {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.45rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--neon-cyan);
+    opacity: 0.75;
+}
+
+/* Layout: day-axis (fixed) + scroll area (overflow) */
+.heatmap__outer {
+    --hm-cell: 10px;
+    --hm-gap: 2px;
+    display: flex;
+    gap: 4px;
+    align-items: flex-start;
+}
+
+.heatmap__day-axis {
+    display: grid;
+    grid-template-rows: repeat(7, var(--hm-cell));
+    gap: var(--hm-gap);
+    padding-top: calc(var(--hm-cell) + 4px); /* space for month labels row */
+    flex-shrink: 0;
+    width: 10px;
+}
+
+.heatmap__day-ax-lbl {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.3rem;
+    font-weight: 700;
+    color: rgba(160, 170, 184, 0.38);
+    height: var(--hm-cell);
+    line-height: 1;
+    user-select: none;
+}
+
+.heatmap__scroll-area {
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.heatmap__scroll-area::-webkit-scrollbar { display: none; }
+
+/* Month labels row */
+.heatmap__month-axis {
+    display: flex;
+    gap: var(--hm-gap);
+    margin-bottom: 4px;
+    height: var(--hm-cell);
+    align-items: center;
+}
+
+.heatmap__month-lbl {
+    width: calc(var(--hm-cell) + var(--hm-gap));
+    flex-shrink: 0;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.3rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: rgba(160, 170, 184, 0.42);
+    overflow: visible;
+    white-space: nowrap;
+    user-select: none;
+}
+
+/* The actual grid */
+.heatmap__grid {
+    display: grid;
+    grid-template-rows: repeat(7, var(--hm-cell));
+    grid-auto-flow: column;
+    grid-auto-columns: var(--hm-cell);
+    gap: var(--hm-gap);
+}
+
+/* Cells */
+.heatmap__cell {
+    width: var(--hm-cell);
+    height: var(--hm-cell);
+    border-radius: 2px;
+    cursor: default;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    flex-shrink: 0;
+}
+
+.heatmap__cell--0  { background: rgba(255, 255, 255, 0.06); }
+.heatmap__cell--1  { background: rgba(0, 255, 255, 0.22); }
+.heatmap__cell--2  { background: rgba(0, 255, 255, 0.48); }
+.heatmap__cell--3  { background: rgba(0, 255, 255, 0.72); }
+.heatmap__cell--4  { background: var(--neon-cyan); box-shadow: 0 0 5px rgba(0, 255, 255, 0.6); }
+.heatmap__cell--today {
+    outline: 1.5px solid rgba(0, 255, 255, 0.9);
+    outline-offset: 1.5px;
+}
+.heatmap__cell--future { background: transparent; cursor: default; }
+
+@media (hover: hover) {
+    .heatmap__cell:not(.heatmap__cell--future):hover {
+        opacity: 0.7;
+        transform: scale(1.35);
+        z-index: 1;
+        position: relative;
+    }
+}
+
+/* Legend */
+.heatmap__legend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: flex-end;
+    margin-top: 2px;
+}
+
+.heatmap__legend-lbl {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.3rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: rgba(160, 170, 184, 0.38);
+    user-select: none;
+}
+
+.heatmap__leg-cell {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+/* Desktop */
+@media (min-width: 480px) {
+    .heatmap__outer {
+        --hm-cell: 12px;
+        --hm-gap: 2.5px;
+    }
+
+    .heatmap__day-axis { width: 12px; }
+    .heatmap__day-ax-lbl { font-size: 0.33rem; }
+    .heatmap__month-lbl  { font-size: 0.33rem; }
+    .heatmap__leg-cell   { width: 12px; height: 12px; }
+}

@@ -500,6 +500,107 @@ document.addEventListener('DOMContentLoaded', () => {
         return { total, todayCount, weekCount, focusHours, focusMinR, focusSecR, avgPerDay, activeDays, bestLabel, bestCount, last7, max7 };
     }
 
+    // ── Heatmap annuale ──────────────────────────────────────────
+
+    function renderHeatmapSection() {
+        const history = getHistory();
+
+        // Build daily count map
+        const dayMap = new Map();
+        history.forEach(e => {
+            const d = new Date(e.ts);
+            const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            dayMap.set(k, (dayMap.get(k) || 0) + 1);
+        });
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Start from Monday of the week 52 weeks (364 days) ago
+        const startRaw = new Date(today);
+        startRaw.setDate(today.getDate() - 364);
+        const dow = startRaw.getDay(); // 0=Sun … 6=Sat
+        startRaw.setDate(startRaw.getDate() - (dow === 0 ? 6 : dow - 1));
+
+        const MONTHS_IT = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
+
+        // Build week columns (Mon–Sun each)
+        const weeks  = [];
+        const cursor = new Date(startRaw);
+        while (cursor.getTime() <= today.getTime()) {
+            const week = [];
+            for (let d = 0; d < 7; d++) {
+                const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
+                const isFuture = cursor.getTime() > today.getTime();
+                week.push({
+                    key,
+                    count:    isFuture ? 0 : (dayMap.get(key) || 0),
+                    isFuture,
+                    isToday:  cursor.getTime() === today.getTime(),
+                    label:    new Date(cursor).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }),
+                });
+                cursor.setDate(cursor.getDate() + 1);
+            }
+            weeks.push(week);
+        }
+
+        // Sessions in the last 365 days
+        const yearAgo = new Date(today);
+        yearAgo.setFullYear(today.getFullYear() - 1);
+        const yearCount = history.filter(e => e.ts >= yearAgo.getTime()).length;
+
+        // Month labels (one per column, text only on month change)
+        let lastMonth = -1;
+        const monthHtml = weeks.map(week => {
+            const m = parseInt(week[0].key.split('-')[1], 10) - 1;
+            const label = m !== lastMonth ? MONTHS_IT[m] : '';
+            lastMonth = m;
+            return `<span class="heatmap__month-lbl">${label}</span>`;
+        }).join('');
+
+        // Day-axis labels (show Mon, Wed, Fri, Sun)
+        const dayAxisHtml = ['L', '', 'M', '', 'V', '', 'D']
+            .map(l => `<span class="heatmap__day-ax-lbl">${l}</span>`)
+            .join('');
+
+        // Color level: 0 = none … 4 = high
+        const getLevel = n => n <= 0 ? 0 : n === 1 ? 1 : n <= 3 ? 2 : n <= 6 ? 3 : 4;
+
+        // Grid cells (flat list, grid-auto-flow:column groups them by week)
+        const cellsHtml = weeks.map(week =>
+            week.map(day => {
+                if (day.isFuture) {
+                    return `<div class="heatmap__cell heatmap__cell--future" aria-hidden="true"></div>`;
+                }
+                const lvl = getLevel(day.count);
+                const tip = day.count === 0
+                    ? `${day.label}: nessuna sessione`
+                    : `${day.label}: ${day.count} session${day.count === 1 ? 'e' : 'i'}`;
+                return `<div class="heatmap__cell heatmap__cell--${lvl}${day.isToday ? ' heatmap__cell--today' : ''}" title="${tip}"></div>`;
+            }).join('')
+        ).join('');
+
+        return `
+            <div class="stats-modal__heatmap-section">
+                <div class="stats-modal__heatmap-hdr">
+                    <span class="stats-modal__chart-title">🌱 PRODUTTIVITÀ ANNUALE</span>
+                    <span class="heatmap__year-count">${yearCount} session${yearCount === 1 ? 'e' : 'i'}</span>
+                </div>
+                <div class="heatmap__outer">
+                    <div class="heatmap__day-axis">${dayAxisHtml}</div>
+                    <div class="heatmap__scroll-area">
+                        <div class="heatmap__month-axis">${monthHtml}</div>
+                        <div class="heatmap__grid">${cellsHtml}</div>
+                    </div>
+                </div>
+                <div class="heatmap__legend">
+                    <span class="heatmap__legend-lbl">MENO</span>
+                    ${[0,1,2,3,4].map(l => `<div class="heatmap__leg-cell heatmap__cell--${l}"></div>`).join('')}
+                    <span class="heatmap__legend-lbl">PIÙ</span>
+                </div>
+            </div>`;
+    }
+
     function renderStats() {
         const s = calcStats();
         if (!s) {
@@ -566,7 +667,14 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="stats-modal__chart">
                 <span class="stats-modal__chart-title">ULTIMI 7 GIORNI</span>
                 <div class="stats-modal__bars">${bars}</div>
-            </div>`;
+            </div>
+            ${renderHeatmapSection()}`;
+
+        // Auto-scroll heatmap to show the most recent weeks (right side)
+        setTimeout(() => {
+            const scrollArea = statsBody.querySelector('.heatmap__scroll-area');
+            if (scrollArea) scrollArea.scrollLeft = scrollArea.scrollWidth;
+        }, 0);
     }
 
     function openStats() {
