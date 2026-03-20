@@ -530,6 +530,7 @@ body {
         cursor: pointer;
         flex-shrink: 0;
         -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation; /* blocca double-tap zoom */
         transition: background 0.2s ease, border-color 0.2s ease;
     }
 
