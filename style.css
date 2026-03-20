@@ -1531,6 +1531,99 @@ body {
 }
 
 /* ======================================
+   ANON NUDGE BANNER (sessione ospite)
+====================================== */
+.anon-nudge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    margin: -0.75rem auto 0.75rem;
+    padding: 0.4rem 0.85rem;
+    max-width: fit-content;
+    background: rgba(0, 200, 255, 0.06);
+    border: 1px solid rgba(0, 200, 255, 0.22);
+    border-radius: 50px;
+    color: #00c8ff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.anon-nudge[hidden] {
+    display: none;
+}
+
+.anon-nudge__icon {
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+.anon-nudge__text {
+    flex-shrink: 0;
+}
+
+.anon-nudge__sep {
+    opacity: 0.35;
+    flex-shrink: 0;
+}
+
+.anon-nudge__sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.55rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: rgba(0, 200, 255, 0.72);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.anon-nudge__cta {
+    background: rgba(0, 200, 255, 0.15);
+    border: 1px solid rgba(0, 200, 255, 0.35);
+    color: #00c8ff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.47rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 0.22rem 0.6rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    text-transform: uppercase;
+    margin-left: 0.3rem;
+}
+
+.anon-nudge__cta:hover {
+    background: rgba(0, 200, 255, 0.28);
+    box-shadow: 0 0 10px rgba(0, 200, 255, 0.25);
+}
+
+.anon-nudge__dismiss {
+    background: transparent;
+    border: none;
+    color: rgba(0, 200, 255, 0.4);
+    cursor: pointer;
+    padding: 0.15rem 0.3rem;
+    font-size: 0.7rem;
+    line-height: 1;
+    transition: color 0.2s;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.anon-nudge__dismiss:hover {
+    color: #00c8ff;
+}
+
+/* ======================================
    AUTH MODAL
 ====================================== */
 
@@ -2547,6 +2640,116 @@ body {
     color: #ffd700;
     border-color: rgba(255, 215, 0, 0.28);
     background: rgba(255, 215, 0, 0.05);
+}
+
+/* ── Push notifications row ── */
+.profile-push-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.65rem 0.75rem;
+    background: rgba(0, 255, 255, 0.03);
+    border: 1px solid rgba(0, 255, 255, 0.09);
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+}
+
+.profile-push-row__icon {
+    font-size: 0.78rem;
+    color: var(--neon-cyan);
+    opacity: 0.7;
+    flex-shrink: 0;
+    width: 16px;
+    text-align: center;
+}
+
+.profile-push-row__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.profile-push-row__label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-primary);
+}
+
+.profile-push-row__sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.58rem;
+    color: var(--text-secondary);
+    opacity: 0.65;
+}
+
+/* Toggle switch */
+.push-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.push-toggle__track {
+    width: 32px;
+    height: 17px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 50px;
+    position: relative;
+    transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+    flex-shrink: 0;
+}
+
+.push-toggle[aria-pressed="true"] .push-toggle__track {
+    background: rgba(0, 255, 255, 0.18);
+    border-color: rgba(0, 255, 255, 0.42);
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.18);
+}
+
+.push-toggle__dot {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 11px;
+    height: 11px;
+    background: rgba(160, 170, 184, 0.55);
+    border-radius: 50%;
+    transition: transform 0.25s ease, background 0.25s, box-shadow 0.25s;
+}
+
+.push-toggle__dot--active {
+    transform: translateX(15px);
+    background: #00ffff;
+    box-shadow: 0 0 6px rgba(0, 255, 255, 0.6);
+}
+
+.push-toggle__label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.42rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: rgba(160, 170, 184, 0.5);
+    min-width: 44px;
+    text-align: right;
+}
+
+.push-toggle[aria-pressed="true"] .push-toggle__label {
+    color: var(--neon-cyan);
+}
+
+.push-toggle:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
 }
 
 /* Logout */

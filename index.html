@@ -59,6 +59,17 @@
             </button>
         </div>
 
+        <!-- ── Anonymous session nudge banner ── -->
+        <div class="anon-nudge" id="anon-nudge" role="status" hidden>
+            <i class="fa-solid fa-user-clock anon-nudge__icon"></i>
+            <span class="anon-nudge__text">SESSIONE OSPITE</span>
+            <span class="anon-nudge__sep" aria-hidden="true">—</span>
+            <span class="anon-nudge__sub">I dati si perdono cambiando browser&nbsp;<button class="anon-nudge__cta" id="anon-nudge-cta" type="button">CREA ACCOUNT</button></span>
+            <button class="anon-nudge__dismiss" id="anon-nudge-dismiss" type="button" aria-label="Chiudi">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
         <!-- ── Pomodoro switch ── -->
         <div class="pom-switch">
             <i class="pom-switch__icon fa-solid fa-fire-flame-curved"></i>
@@ -475,6 +486,21 @@
                             <span class="profile-panel__feat-tag profile-panel__feat-tag--pro">PRO</span>
                         </li>
                     </ul>
+                </div>
+
+                <!-- Push Notifications toggle -->
+                <div class="profile-push-row">
+                    <i class="fa-solid fa-bell profile-push-row__icon"></i>
+                    <div class="profile-push-row__info">
+                        <span class="profile-push-row__label">NOTIFICHE PUSH</span>
+                        <span class="profile-push-row__sub">Reminder giornaliero focus</span>
+                    </div>
+                    <button class="push-toggle" id="profile-push-toggle" type="button" aria-pressed="false" aria-label="Attiva/disattiva notifiche push">
+                        <span class="push-toggle__track">
+                            <span class="push-toggle__dot"></span>
+                        </span>
+                        <span class="push-toggle__label">DISATTIVE</span>
+                    </button>
                 </div>
                 <button class="profile-panel__logout-btn" id="profile-logout-btn">
                     <i class="fa-solid fa-right-from-bracket"></i>

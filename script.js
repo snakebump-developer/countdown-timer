@@ -762,6 +762,8 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDailyGoal();
         // Aggiorna badge streak in auth-bar
         window.updateStreakBadge?.();
+        // Mostra nudge registrazione per utenti ospite dopo primo pomodoro
+        window.showAnonNudgeIfNeeded?.();
         // Salva su Firestore se l'utente è autenticato
         window.savePomodoro?.(totalSeconds);
     }

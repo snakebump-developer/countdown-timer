@@ -1,5 +1,5 @@
 // ── Versione build: aggiornare ad ogni deploy (YYYY-MM-DD.N) ────
-const BUILD_VERSION = '2026-03-20.9';
+const BUILD_VERSION = '2026-03-20.10';
 const CACHE_NAME = `futuristic-timer-v3-${BUILD_VERSION}`;
 
 // Asset statici da precachare (aggiornaci la versione ad ogni deploy)
@@ -100,4 +100,37 @@ self.addEventListener('fetch', (e) => {
                 .catch(() => caches.match(e.request))
         );
     }
+});
+
+// ── Push: mostra notifica ricevuta dal server ─────────────────────
+self.addEventListener('push', (e) => {
+    let data = {};
+    try { data = e.data?.json() ?? {}; } catch (_) {}
+    const title = data.title ?? '🍅 Futuristic Timer';
+    const body  = data.body  ?? 'È l\'ora di concentrarti! Avvia la tua sessione Pomodoro.';
+    const icon  = data.icon  ?? './icon-192.svg';
+    e.waitUntil(
+        self.registration.showNotification(title, {
+            body,
+            icon,
+            badge:    './icon-192.svg',
+            tag:      'pomodoro-reminder',
+            renotify: true,
+            data:     { url: self.location.origin },
+        })
+    );
+});
+
+// ── Push: click sulla notifica → apri/focalizza l’app ───────────
+self.addEventListener('notificationclick', (e) => {
+    e.notification.close();
+    const targetUrl = e.notification.data?.url ?? self.location.origin;
+    e.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+            for (const client of list) {
+                if (client.url === targetUrl && 'focus' in client) return client.focus();
+            }
+            return clients.openWindow?.(targetUrl);
+        })
+    );
 });

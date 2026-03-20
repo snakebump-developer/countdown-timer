@@ -10,6 +10,10 @@ import {
     sendEmailVerification,
     GoogleAuthProvider,
     signInWithPopup,
+    signInAnonymously,
+    linkWithCredential,
+    linkWithPopup as firebaseLinkWithPopup,
+    EmailAuthProvider,
 } from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js';
 import {
     getFirestore,
@@ -19,6 +23,7 @@ import {
     arrayUnion,
     increment,
     serverTimestamp,
+    deleteDoc,
 } from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -77,6 +82,21 @@ const googleLoginBtn    = document.getElementById('google-login-btn');
 const googleRegisterBtn = document.getElementById('google-register-btn');
 
 const googleProvider = new GoogleAuthProvider();
+
+// ── DOM references: anon nudge banner ─────────────────────────
+const anonNudgeEl      = document.getElementById('anon-nudge');
+const anonNudgeCta     = document.getElementById('anon-nudge-cta');
+const anonNudgeDismiss = document.getElementById('anon-nudge-dismiss');
+
+// ── DOM references: push toggle (nel profile panel) ───────────
+const pushToggleBtn = document.getElementById('profile-push-toggle');
+
+// ── Costanti account linking & push ───────────────────────────
+const ANON_NUDGE_KEY  = 'anon_nudge_dismissed_ts';
+const ANON_NUDGE_TTL  = 3 * 24 * 60 * 60 * 1000; // 3 giorni prima di rimostrare
+const PENDING_MERGE_KEY = 'pending_anon_merge';    // JSON con dati anonimi da fondere
+// VAPID public key per Web Push (genera la tua coppia con: npx web-push generate-vapid-keys)
+const VAPID_PUBLIC_KEY = 'BEQufH8PDA128Reott_SpzkF-CBp9ODlvYM_Jez9q8vcXHJqSMbN_SxxYGq8VKbqlRRLQa6CKDu5yNamw5Rz8xs';
 
 // Ref profile panel + streak badge
 const profilePanel       = document.getElementById('profile-panel');
@@ -148,6 +168,190 @@ function updateStreakBadge() {
 }
 window.updateStreakBadge = updateStreakBadge;
 
+// ── Anon Nudge Banner ──────────────────────────────────────────
+function showAnonNudge() {
+    if (!anonNudgeEl) return;
+    const dismissed = localStorage.getItem(ANON_NUDGE_KEY);
+    if (dismissed && Date.now() - parseInt(dismissed) < ANON_NUDGE_TTL) return;
+    anonNudgeEl.hidden = false;
+}
+
+function hideAnonNudge(persist = false) {
+    if (!anonNudgeEl) return;
+    anonNudgeEl.hidden = true;
+    if (persist) localStorage.setItem(ANON_NUDGE_KEY, Date.now());
+}
+
+// Esposto per script.js: mostra il nudge dopo il primo pomodoro completato
+window.showAnonNudgeIfNeeded = () => {
+    if (auth.currentUser && !auth.currentUser.isAnonymous) return;
+    showAnonNudge();
+};
+
+anonNudgeCta?.addEventListener('click', () => {
+    // Apri il modal di auth sul tab registrazione
+    openModal();
+    tabRegister.click();
+    hideAnonNudge(false);
+});
+
+anonNudgeDismiss?.addEventListener('click', () => hideAnonNudge(true));
+
+// ── Merge dati anonimi nell'account corrente ──────────────────
+// anonSnapshot: { totalPomodoros, history } già letti mentre eravamo anonimi
+async function mergeAnonDataIntoCurrentUser(anonSnapshot) {
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous || !anonSnapshot) return;
+    const updates = {};
+    const total = parseInt(anonSnapshot.totalPomodoros ?? 0, 10);
+    if (total > 0) updates.totalPomodoros = increment(total);
+    const history = anonSnapshot.history ?? [];
+    if (history.length) updates.history = arrayUnion(...history.slice(0, 400));
+    if (!Object.keys(updates).length) return;
+    try {
+        await setDoc(doc(db, 'users', user.uid), updates, { merge: true });
+    } catch (e) {
+        console.error('[mergeAnonData] Firestore error:', e?.message ?? e);
+    }
+}
+
+// Controlla se esiste un merge pendente (caso email-already-in-use) e lo applica
+async function attemptPendingMerge() {
+    const raw = localStorage.getItem(PENDING_MERGE_KEY);
+    if (!raw) return;
+    localStorage.removeItem(PENDING_MERGE_KEY);
+    try {
+        const anonSnapshot = JSON.parse(raw);
+        await mergeAnonDataIntoCurrentUser(anonSnapshot);
+        showAuthSnack('Progressi sessione ospite recuperati! 🔗', 'success');
+    } catch (e) {
+        console.error('[attemptPendingMerge]', e?.message ?? e);
+    }
+}
+
+// ── Push Notifications ─────────────────────────────────────────
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const b64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(b64);
+    return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function savePushSubscriptionToFirestore(sub) {
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous) return;
+    try {
+        const j = sub.toJSON();
+        await setDoc(doc(db, 'users', user.uid), {
+            pushSubscription: {
+                endpoint: j.endpoint,
+                auth:     j.keys?.auth,
+                p256dh:   j.keys?.p256dh,
+                updatedAt: serverTimestamp(),
+            },
+        }, { merge: true });
+    } catch (e) {
+        console.error('[savePushSub] Firestore error:', e?.message ?? e);
+    }
+}
+
+async function removePushSubscriptionFromFirestore() {
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous) return;
+    try {
+        await setDoc(doc(db, 'users', user.uid), { pushSubscription: null }, { merge: true });
+    } catch (e) {
+        console.error('[removePushSub] Firestore error:', e?.message ?? e);
+    }
+}
+
+async function subscribeToPush() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        showAuthSnack('Push non supportato su questo browser', 'info');
+        return false;
+    }
+    try {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+            showAuthSnack('Permesso notifiche negato — puoi riabilitarle dalle impostazioni del browser', 'info');
+            updatePushToggleUI(false);
+            return false;
+        }
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+        await savePushSubscriptionToFirestore(sub);
+        updatePushToggleUI(true);
+        showAuthSnack('Notifiche push attivate! 🔔 Riceverai reminder giornalieri', 'success');
+        return true;
+    } catch (e) {
+        console.error('[subscribeToPush]', e?.message ?? e);
+        showAuthSnack('Errore attivazione notifiche', 'error');
+        return false;
+    }
+}
+
+async function unsubscribeFromPush() {
+    try {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) await sub.unsubscribe();
+        await removePushSubscriptionFromFirestore();
+        updatePushToggleUI(false);
+        showAuthSnack('Notifiche push disattivate', 'info');
+    } catch (e) {
+        console.error('[unsubscribeFromPush]', e?.message ?? e);
+    }
+}
+
+function updatePushToggleUI(isActive) {
+    if (!pushToggleBtn) return;
+    pushToggleBtn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    const dot   = pushToggleBtn.querySelector('.push-toggle__dot');
+    const label = pushToggleBtn.querySelector('.push-toggle__label');
+    if (dot)   dot.classList.toggle('push-toggle__dot--active', isActive);
+    if (label) label.textContent = isActive ? 'ATTIVE' : 'DISATTIVE';
+}
+
+async function initPushToggleUI() {
+    if (!pushToggleBtn) return;
+    if (!('PushManager' in window) || !('Notification' in window)) {
+        pushToggleBtn.closest('.profile-push-row')?.remove();
+        return;
+    }
+    if (Notification.permission === 'denied') {
+        updatePushToggleUI(false);
+        pushToggleBtn.disabled = true;
+        pushToggleBtn.title = 'Notifiche bloccate dal browser — abilitale nelle impostazioni del sito';
+        return;
+    }
+    try {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        updatePushToggleUI(!!sub);
+    } catch (e) {
+        updatePushToggleUI(false);
+    }
+}
+
+pushToggleBtn?.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous) {
+        showAuthSnack('Crea un account per attivare le notifiche push', 'info');
+        return;
+    }
+    const isActive = pushToggleBtn.getAttribute('aria-pressed') === 'true';
+    pushToggleBtn.disabled = true;
+    if (isActive) {
+        await unsubscribeFromPush();
+    } else {
+        await subscribeToPush();
+    }
+    pushToggleBtn.disabled = false;
+});
+
 // ── Profile Panel ──────────────────────────────────────────────
 function openProfilePanel(user) {
     const streak     = calcStreak();
@@ -162,6 +366,8 @@ function openProfilePanel(user) {
     profileTodayVal.textContent    = todayCount;
     profilePanel.hidden = false;
     document.body.style.overflow = 'hidden';
+    // Sincronizza lo stato del toggle push
+    initPushToggleUI();
 }
 
 function closeProfilePanel() {
@@ -432,23 +638,34 @@ let isFirstAuthCheck = true;
 // ── Auth state observer ───────────────────────────────
 onAuthStateChanged(auth, async (user) => {
     if (user) {
+        if (user.isAnonymous) {
+            // Sessione ospite silenziosa: UI rimane "non loggata"
+            authOpenBtn.hidden = false;
+            authUserEl.hidden  = true;
+            updateStreakBadge();
+            if (isFirstAuthCheck) isFirstAuthCheck = false;
+            return;
+        }
+
+        // ── Utente reale registrato ──
+        hideAnonNudge();
         authOpenBtn.hidden = true;
         authUserEl.hidden  = false;
-        // Mostra nome (Google) o email (email/password)
         authEmailEl.textContent = user.displayName || user.email || '';
         if (authMiniAvatar) authMiniAvatar.textContent = (user.displayName || user.email || '?').charAt(0).toUpperCase();
         await loadUserStats(user.uid);
-        // Sincronizza cronologia da Firestore → localStorage
         await syncHistory(user.uid);
-        // Aggiorna badge streak in auth-bar (legge da localStorage populato da syncHistory)
         updateStreakBadge();
-        // Google garantisce sempre emailVerified = true; nascondi il banner
+
+        // Merge dati sessione ospite pendente (caso email-already-in-use al linking)
+        await attemptPendingMerge();
+
         if (!user.emailVerified) {
             showVerifyNotice();
         } else {
             hideVerifyNotice();
         }
-        // Mostra snack solo su login/registrazione attivi, non su ripristino sessione
+
         if (!isFirstAuthCheck) {
             const isGoogle = user.providerData.some(p => p.providerId === 'google.com');
             if (justRegistered) {
@@ -475,6 +692,8 @@ onAuthStateChanged(auth, async (user) => {
         authEmailEl.textContent = '';
         if (authMiniAvatar) authMiniAvatar.textContent = '?';
         authCountEl.textContent = '0';
+        // Avvia sessione ospite anonima silenziosa
+        signInAnonymously(auth).catch(e => console.error('[signInAnonymously]', e?.message ?? e));
     }
 });
 
@@ -635,18 +854,49 @@ regSubmitBtn.addEventListener('click', async () => {
     justRegistered = true;
     setBtnLoading(regSubmitBtn, true, REG_BTN_HTML);
     try {
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        // Invia email di verifica (non bloccante se fallisce, es. offline)
-        sendEmailVerification(cred.user).catch(e =>
-            console.error('[sendEmailVerification]', e?.message ?? e)
-        );
+        const currentUser = auth.currentUser;
+        if (currentUser?.isAnonymous) {
+            // ── Account linking: converte la sessione ospite in account reale ──
+            // Il UID rimane identico → tutti i dati Firestore sono preservati automaticamente
+            const credential = EmailAuthProvider.credential(email, password);
+            const cred = await linkWithCredential(currentUser, credential);
+            sendEmailVerification(cred.user).catch(e =>
+                console.error('[sendEmailVerification]', e?.message ?? e)
+            );
+        } else {
+            const cred = await createUserWithEmailAndPassword(auth, email, password);
+            sendEmailVerification(cred.user).catch(e =>
+                console.error('[sendEmailVerification]', e?.message ?? e)
+            );
+        }
     } catch (err) {
         justRegistered = false;
-        const msg = friendlyError(err.code);
-        regErrorEl.textContent = msg;
-        showAuthSnack(msg, 'error');
-        panelRegister.classList.add('auth-modal__body--shake');
-        setTimeout(() => panelRegister.classList.remove('auth-modal__body--shake'), 450);
+        if (err.code === 'auth/email-already-in-use' && auth.currentUser?.isAnonymous) {
+            // L'email esiste già. Leggi i dati anonimi ORA (siamo ancora autenticati come ospiti)
+            try {
+                const snap = await getDoc(doc(db, 'users', auth.currentUser.uid));
+                if (snap.exists()) {
+                    const d = snap.data();
+                    localStorage.setItem(PENDING_MERGE_KEY, JSON.stringify({
+                        totalPomodoros: d.totalPomodoros ?? 0,
+                        history:        d.history ?? [],
+                    }));
+                }
+            } catch (e) {
+                console.error('[pendingMerge] read anon data', e?.message ?? e);
+            }
+            // Suggerisci il tab login con email precompilata
+            tabLogin.click();
+            loginEmailInput.value = email;
+            loginErrorEl.textContent = 'Email già registrata — accedi per unire i progressi ospite al tuo account';
+            showAuthSnack('Email già in uso: accedi per recuperare i tuoi progressi 🔗', 'info');
+        } else {
+            const msg = friendlyError(err.code);
+            regErrorEl.textContent = msg;
+            showAuthSnack(msg, 'error');
+            panelRegister.classList.add('auth-modal__body--shake');
+            setTimeout(() => panelRegister.classList.remove('auth-modal__body--shake'), 450);
+        }
     } finally {
         setBtnLoading(regSubmitBtn, false, REG_BTN_HTML);
     }
@@ -668,13 +918,47 @@ dismissVerifyBtn?.addEventListener('click', hideVerifyNotice);
 
 // ── Login con Google ──────────────────────────────────────────
 async function handleGoogleSignIn() {
+    const currentUser  = auth.currentUser;
+    const wasAnonymous = currentUser?.isAnonymous ?? false;
     try {
-        await signInWithPopup(auth, googleProvider);
-        // onAuthStateChanged gestisce tutto il resto (snack, sync, ecc.)
+        if (wasAnonymous) {
+            // Account linking: converte la sessione ospite in account Google
+            // Il UID rimane uguale → dati Firestore preservati automaticamente
+            await firebaseLinkWithPopup(currentUser, googleProvider);
+        } else {
+            await signInWithPopup(auth, googleProvider);
+        }
     } catch (err) {
-        // L'utente ha chiuso il popup: non mostrare errore
         if (err.code === 'auth/popup-closed-by-user' ||
             err.code === 'auth/cancelled-popup-request') return;
+
+        if ((err.code === 'auth/credential-already-in-use' ||
+             err.code === 'auth/email-already-in-use') && wasAnonymous) {
+            // Account Google esiste già. Leggi i dati anonimi ORA prima di perdere l'UID
+            try {
+                const snap = await getDoc(doc(db, 'users', currentUser.uid));
+                if (snap.exists()) {
+                    const d = snap.data();
+                    localStorage.setItem(PENDING_MERGE_KEY, JSON.stringify({
+                        totalPomodoros: d.totalPomodoros ?? 0,
+                        history:        d.history ?? [],
+                    }));
+                }
+            } catch (e) {
+                console.error('[pendingMerge/google] read', e?.message ?? e);
+            }
+            // Sign in con Google (nuovo popup)
+            try {
+                await signInWithPopup(auth, googleProvider);
+                // onAuthStateChanged chiamerà attemptPendingMerge()
+            } catch (e2) {
+                if (e2.code !== 'auth/popup-closed-by-user' &&
+                    e2.code !== 'auth/cancelled-popup-request') {
+                    showAuthSnack(friendlyError(e2.code), 'error');
+                }
+            }
+            return;
+        }
         const msg = friendlyError(err.code);
         showAuthSnack(msg, 'error');
     }

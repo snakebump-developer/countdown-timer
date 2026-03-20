@@ -14,7 +14,7 @@
 
 - [x] **Login con Google (OAuth)** — Abbassare la barriera di entry: un tap invece di email+password riduce abbandoni del ~60%
 - [x] **Reset password via email** — Feature mancante che blocca utenti che dimenticano la password
-- [ ] **Account linking anonimo→registrato** — Permettere di convertire una sessione anonima in account senza perdere dati locali
+- [x] **Account linking anonimo→registrato** — Permettere di convertire una sessione anonima in account senza perdere dati locali
 - [x] **Verifica email** — Inviare email di verifica alla registrazione per ridurre spam e aumentare fiducia
 
 ### Dati & Statistiche (il cuore della retention)
@@ -28,7 +28,7 @@
 
 - [ ] **Pagina landing separata dall'app** — Homepage marketing con headline, screenshot, CTA "Installa gratis" — necessaria per SEO e conversioni
 - [ ] **Meta tag Open Graph + Twitter Card** — Rendering link preview su WhatsApp/Telegram/X quando si condivide l'URL
-- [ ] **Notifiche Push (Web Push API)** — Reminder push giornaliero opzionale ("Hai completato 0 pomodori oggi") — strumento di re-engagement
+- [x] **Notifiche Push (Web Push API)** — Reminder push giornaliero opzionale ("Hai completato 0 pomodori oggi") — strumento di re-engagement
 - [ ] **PWA screenshots nel manifest.json** — Obbligatorie per il prompt di installazione attraente su Android e Chrome
 
 ---
@@ -131,4 +131,4 @@ Se possibile far stare sia focus che break sullo stesso asse di modifica.
 
 ---
 
-*Ultimo aggiornamento: 2026-03-20 (Heatmap annuale produttività implementata)*
+*Ultimo aggiornamento: 2026-03-20 (Account linking anonimo→registrato + Notifiche Push Web Push API)*
