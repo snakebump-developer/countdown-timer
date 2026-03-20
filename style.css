@@ -510,6 +510,44 @@ body {
     cursor: not-allowed;
 }
 
+/* Stepper −/+ cicli: nascosti su desktop, visibili su touch */
+.pom-config__stepper-btn {
+    display: none;
+}
+
+@media (hover: none) {
+    .pom-config__stepper-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: transparent;
+        border: 1px solid rgba(0, 255, 255, 0.25);
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        cursor: pointer;
+        flex-shrink: 0;
+        -webkit-tap-highlight-color: transparent;
+        transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .pom-config__stepper-btn:active {
+        background: rgba(0, 255, 255, 0.12);
+        border-color: var(--neon-cyan);
+        color: var(--neon-cyan);
+    }
+
+    /* Su touch l'input cicli non è editabile: è solo display */
+    .pom-config__input--cycles {
+        pointer-events: none;
+        text-align: center;
+        border-bottom-color: rgba(0, 255, 255, 0.25);
+        width: 36px;
+    }
+}
+
 .pom-config__infinite-btn {
     display: inline-flex;
     align-items: center;

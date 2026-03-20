@@ -144,7 +144,14 @@
                 <label class="pom-config__label" for="pom-cycles">
                     CICLI
                 </label>
-                <input type="number" id="pom-cycles" class="pom-config__input pom-config__input--cycles" value="4" min="1" max="99" aria-label="Numero di cicli">
+                <!-- Stepper −/+ visibile solo su touch; su desktop resta l'input numerico -->
+                <button class="pom-config__stepper-btn pom-config__stepper-btn--dec" id="pom-cycles-dec" type="button" aria-label="Diminuisci cicli" tabindex="-1">
+                    <i class="fa-solid fa-minus"></i>
+                </button>
+                <input type="number" id="pom-cycles" class="pom-config__input pom-config__input--cycles" value="4" min="1" max="99" aria-label="Numero di cicli" inputmode="numeric">
+                <button class="pom-config__stepper-btn pom-config__stepper-btn--inc" id="pom-cycles-inc" type="button" aria-label="Aumenta cicli" tabindex="-1">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
                 <button id="pom-infinite" class="pom-config__infinite-btn" type="button" aria-label="Cicli infiniti" aria-pressed="false">
                     <i class="fa-solid fa-infinity"></i>
                 </button>

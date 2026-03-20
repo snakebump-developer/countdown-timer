@@ -366,9 +366,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const idx = Math.round(drumEl.scrollTop / ITEM_H);
             const val = Math.max(min, Math.min(max, idx + min));
 
-            // Aggiorna input
+            // Aggiorna input e triggera il listener 'input' usato dal live-update del timer
             inputEl.value = val;
-            inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+            inputEl.dispatchEvent(new Event('input', { bubbles: true }));
 
             // Aggiorna classi visive
             const items = drumEl.querySelectorAll('.pom-wheel-drum__item[data-value]');
@@ -1018,6 +1018,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Cycles count input — aggiorna label in tempo reale
     pomCyclesInput.addEventListener('input', () => {
+        if (isPomodoroMode) updatePhaseLabel();
+    });
+
+    // Stepper −/+ cicli (mobile touch)
+    document.getElementById('pom-cycles-dec').addEventListener('click', () => {
+        if (pomCyclesInput.disabled) return;
+        const v = Math.max(1, (parseInt(pomCyclesInput.value, 10) || 4) - 1);
+        pomCyclesInput.value = v;
+        if (isPomodoroMode) updatePhaseLabel();
+    });
+    document.getElementById('pom-cycles-inc').addEventListener('click', () => {
+        if (pomCyclesInput.disabled) return;
+        const v = Math.min(99, (parseInt(pomCyclesInput.value, 10) || 4) + 1);
+        pomCyclesInput.value = v;
         if (isPomodoroMode) updatePhaseLabel();
     });
 
