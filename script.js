@@ -145,6 +145,86 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ── Media Session API (lock screen / area notifiche) ─────────
+    // Fonte: https://developer.mozilla.org/en-US/docs/Web/API/Media_Session_API
+    // Richiede audio attivo → usiamo un buffer silenzioso in loop per mantenere
+    // il contesto audio vivo in background senza consumare risorse udibili.
+    let silentSourceNode  = null;
+    let silentGainNode    = null;
+    let mediaSessionReady = false;
+
+    function startSilentAudio() {
+        if (!audioCtx) return;
+        stopSilentAudio();
+        try {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            // 2 secondi di silenzio in loop — mantiene l'AudioContext attivo
+            const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 2, audioCtx.sampleRate);
+            silentSourceNode = audioCtx.createBufferSource();
+            silentSourceNode.buffer = buf;
+            silentSourceNode.loop = true;
+            silentGainNode = audioCtx.createGain();
+            silentGainNode.gain.value = 0.0001; // Inudibile
+            silentSourceNode.connect(silentGainNode);
+            silentGainNode.connect(audioCtx.destination);
+            silentSourceNode.start();
+        } catch (e) { /* Audio non supportato */ }
+    }
+
+    function stopSilentAudio() {
+        if (silentSourceNode) {
+            try { silentSourceNode.stop(); } catch (e) {}
+            try { silentSourceNode.disconnect(); } catch (e) {}
+            silentSourceNode = null;
+        }
+        if (silentGainNode) {
+            try { silentGainNode.disconnect(); } catch (e) {}
+            silentGainNode = null;
+        }
+    }
+
+    function updateMediaSession() {
+        if (!('mediaSession' in navigator)) return;
+        const timeString = formatTime(currentSeconds);
+        let title, artist;
+        if (isPomodoroMode) {
+            const phase    = pomPhase === 'work' ? '🧠 FOCUS' : '☕ BREAK';
+            const maxCy    = pomIsInfinite ? '∞' : (parseInt(pomCyclesInput.value, 10) || 4);
+            title  = `${phase}  ${timeString}`;
+            artist = `Ciclo ${pomCyclesCompleted + 1} / ${maxCy}`;
+        } else {
+            title  = `⏱ ${timeString}`;
+            artist = isRunning ? 'Timer in esecuzione' : 'In pausa';
+        }
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title,
+            artist,
+            album:   'Futuristic Timer',
+            artwork: [{ src: 'icon-512.svg', sizes: 'any', type: 'image/svg+xml' }],
+        });
+        navigator.mediaSession.playbackState = isRunning ? 'playing' : 'paused';
+    }
+
+    function setupMediaSession() {
+        if (!('mediaSession' in navigator) || mediaSessionReady) return;
+        mediaSessionReady = true;
+        navigator.mediaSession.setActionHandler('play', () => {
+            requestPermissions();
+            playStart();
+            startTimer();
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+            requestPermissions();
+            playPause();
+            stopTimer();
+        });
+        navigator.mediaSession.setActionHandler('stop', () => {
+            requestPermissions();
+            playPause();
+            resetTimer();
+        });
+    }
+
     // Update SVG progress ring
     function updateRing() {
         const elapsed = totalSeconds - currentSeconds;
@@ -798,9 +878,15 @@ document.addEventListener('DOMContentLoaded', () => {
         updateToggleButton();
         timeDisplay.contentEditable = "false";
 
+        // Avvia l'audio silenzioso e la Media Session per lock screen
+        startSilentAudio();
+        setupMediaSession();
+        updateMediaSession();
+
         timerId = setInterval(() => {
             currentSeconds--;
             updateDisplay();
+            updateMediaSession(); // Aggiorna titolo sul lock screen ogni secondo
 
             if (currentSeconds <= 0) {
                 stopTimer();
@@ -815,12 +901,15 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(timerId);
         updateToggleButton();
         stopAlarm();
+        stopSilentAudio();
+        updateMediaSession(); // Aggiorna stato a 'paused' sul lock screen
     }
 
     function resetTimer() {
         stopTimer();
         currentSeconds = totalSeconds;
         updateDisplay();
+        updateMediaSession();
     }
 
     function updateToggleButton() {
