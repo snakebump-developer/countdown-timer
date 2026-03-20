@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let pomCount = 0;
     let pomCyclesCompleted = 0;
     let pomIsInfinite = false;
+    let pomSettingsOpen = false;
 
     // Elements
     const timeDisplay = document.getElementById('time-display');
@@ -48,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const tomatoesEl = document.getElementById('tomatoes');
     const tomatoesTray = document.getElementById('tomatoes-tray');
     const pomSwitchEl = document.querySelector('.pom-switch');
+    const pomSettingsBtn = document.getElementById('pom-settings-btn');
+    const pomSettingsChevron = document.getElementById('pom-settings-chevron');
 
     // History elements
     const histBtn          = document.getElementById('pom-hist-btn');
@@ -681,6 +684,15 @@ document.addEventListener('DOMContentLoaded', () => {
         tomatoesEl.removeAttribute('aria-hidden');
         pomSwitchEl.classList.add('pom-switch--active');
 
+        // Mostra il bottone chevron e segna i settings come aperti
+        pomSettingsOpen = true;
+        if (pomSettingsBtn) {
+            pomSettingsBtn.hidden = false;
+            pomSettingsBtn.setAttribute('aria-expanded', 'true');
+        }
+        if (pomSettingsChevron) pomSettingsChevron.className = 'fa-solid fa-chevron-up pom-switch__settings-chevron';
+        document.querySelector('.app')?.classList.remove('pom-settings--collapsed');
+
         presetsHeader.classList.add('presets--pomodoro');
         timeDisplay.contentEditable = 'false';
         timeDisplay.addEventListener('click', blockDisplayEdit, true);
@@ -696,6 +708,11 @@ document.addEventListener('DOMContentLoaded', () => {
         tomatoesEl.setAttribute('aria-hidden', 'true');
         pomSwitchEl.classList.remove('pom-switch--active');
 
+        // Nasconde chevron e rimuove stato collasso
+        pomSettingsOpen = false;
+        if (pomSettingsBtn) pomSettingsBtn.hidden = true;
+        document.querySelector('.app')?.classList.remove('pom-settings--collapsed');
+
         updatePhaseLabel();
         updateRingTheme();
 
@@ -706,6 +723,23 @@ document.addEventListener('DOMContentLoaded', () => {
         currentSeconds = totalSeconds;
         updateDisplay();
         presetBtns.forEach(b => b.classList.remove('presets__btn--active'));
+    }
+
+    function togglePomSettings() {
+        pomSettingsOpen = !pomSettingsOpen;
+        if (pomSettingsOpen) {
+            pomConfig.classList.add('pom-config--visible');
+            pomConfig.removeAttribute('aria-hidden');
+            if (pomSettingsBtn) pomSettingsBtn.setAttribute('aria-expanded', 'true');
+            if (pomSettingsChevron) pomSettingsChevron.className = 'fa-solid fa-chevron-up pom-switch__settings-chevron';
+            document.querySelector('.app')?.classList.remove('pom-settings--collapsed');
+        } else {
+            pomConfig.classList.remove('pom-config--visible');
+            pomConfig.setAttribute('aria-hidden', 'true');
+            if (pomSettingsBtn) pomSettingsBtn.setAttribute('aria-expanded', 'false');
+            if (pomSettingsChevron) pomSettingsChevron.className = 'fa-solid fa-chevron-down pom-switch__settings-chevron';
+            document.querySelector('.app')?.classList.add('pom-settings--collapsed');
+        }
     }
 
     // Helper: format time for display
@@ -975,6 +1009,10 @@ document.addEventListener('DOMContentLoaded', () => {
         requestPermissions();
         playStart();
         startTimer();
+        // Chiude i settings pomodoro al click su START (solo su mobile con settings aperte)
+        if (isPomodoroMode && pomSettingsOpen) {
+            togglePomSettings();
+        }
     });
 
     pauseBtn.addEventListener('mousedown', () => {
@@ -997,6 +1035,13 @@ document.addEventListener('DOMContentLoaded', () => {
             exitPomodoroMode();
         }
     });
+
+    // Chevron toggle settings
+    if (pomSettingsBtn) {
+        pomSettingsBtn.addEventListener('click', () => {
+            togglePomSettings();
+        });
+    }
 
     // Live-update timer when config inputs change (only when stopped, correct phase)
     [pomWorkMinInput, pomWorkSecInput].forEach(el => {

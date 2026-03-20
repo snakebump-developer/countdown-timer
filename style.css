@@ -42,6 +42,8 @@ body {
     width: 100%;
     max-width: 800px;
     padding: 1.5rem 1rem 3rem;
+    /* Rispetta la safe-area iOS (notch / Dynamic Island) */
+    padding-top: max(1.5rem, env(safe-area-inset-top, 0px));
     margin-block: auto;
     position: relative;
     z-index: 1;
@@ -385,6 +387,49 @@ body {
     transform: translate(22px, -50%);
     background: var(--neon-pink);
     box-shadow: 0 0 10px rgba(255, 0, 255, 0.9);
+}
+
+/* Bottone chevron per aprire/chiudere i settings pomodoro */
+.pom-switch__settings-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 0, 255, 0.08);
+    border: 1px solid rgba(255, 0, 255, 0.28);
+    border-radius: 50%;
+    color: var(--neon-pink);
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: auto;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.25s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.pom-switch__settings-btn:hover {
+    background: rgba(255, 0, 255, 0.18);
+    box-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
+}
+
+.pom-switch__settings-chevron {
+    font-size: 0.6rem;
+    transition: transform 0.25s ease;
+}
+
+/* Timer ring ridotto su mobile quando i settings sono visibili */
+@media (hover: none) {
+    .pom-settings--collapsed .timer__ring {
+        width: min(230px, 28dvh);
+        height: min(230px, 28dvh);
+    }
+
+    .pom-settings--collapsed .timer__display {
+        font-size: clamp(1.9rem, 4dvh, 3rem);
+    }
 }
 
 /* ======================================
