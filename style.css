@@ -3669,6 +3669,13 @@ body {
     -webkit-backdrop-filter: blur(6px);
 }
 
+/* Nasconde sia il backdrop che la modal quando hanno l'attributo hidden
+   (necessario perché display:flex/block sovrascrive il display:none del browser) */
+.pom-cycles-editor-backdrop[hidden],
+.pom-cycles-editor[hidden] {
+    display: none !important;
+}
+
 /* ======================================
    CUSTOM CYCLES — Editor modal
 ====================================== */
