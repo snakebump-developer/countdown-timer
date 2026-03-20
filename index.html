@@ -157,6 +157,26 @@
                     <i class="fa-solid fa-infinity"></i>
                 </button>
             </div>
+
+            <!-- ── Custom cycles toggle ── -->
+            <div class="pom-config__sep pom-config__sep--full">
+                <button id="pom-custom-cycles-btn" class="pom-config__custom-btn" type="button" aria-pressed="false">
+                    <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                    <span>CICLI CUSTOM</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ── Custom cycles editor (espanso sotto pom-config) ── -->
+        <div class="pom-cycles-editor" id="pom-cycles-editor" hidden>
+            <div class="pom-cycles-editor__header">
+                <span class="pom-cycles-editor__title"><i class="fa-solid fa-sliders" aria-hidden="true"></i> CICLI PERSONALIZZATI</span>
+                <span class="pom-cycles-editor__hint">Ogni ciclo ha focus e break indipendenti</span>
+            </div>
+            <div class="pom-cycle-list" id="pom-cycle-list"></div>
+            <button class="pom-cycle-add-btn" id="pom-add-cycle-btn" type="button">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i> AGGIUNGI CICLO
+            </button>
         </div>
 
         <header class="presets" id="presets-header">
@@ -505,6 +525,48 @@
                 <button class="profile-panel__logout-btn" id="profile-logout-btn">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     DISCONNETTI
+                </button>
+            </div>
+        </div>
+
+        <!-- ── Cycle time editor sheet ── -->
+        <div class="pom-cycle-sheet-backdrop" id="pom-cycle-sheet-backdrop" hidden></div>
+        <div class="pom-cycle-sheet" id="pom-cycle-sheet" hidden>
+            <div class="pom-cycle-sheet__header">
+                <span class="pom-cycle-sheet__title" id="pom-cycle-sheet-title">MODIFICA CICLO 1</span>
+                <button class="pom-cycle-sheet__close" id="pom-cycle-sheet-close" type="button" aria-label="Chiudi">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="pom-cycle-sheet__drums">
+                <div class="pom-wheel-col">
+                    <span class="pom-wheel-col__label"><i class="fa-solid fa-brain" aria-hidden="true"></i> FOCUS</span>
+                    <div class="pom-wheel-col__drums">
+                        <div class="pom-wheel-drum" id="cte-drum-work-min" role="listbox" aria-label="Minuti focus ciclo"></div>
+                        <span class="pom-wheel-col__colon">:</span>
+                        <div class="pom-wheel-drum" id="cte-drum-work-sec" role="listbox" aria-label="Secondi focus ciclo"></div>
+                    </div>
+                    <span class="pom-wheel-col__unit">min : sec</span>
+                </div>
+                <span class="pom-wheel-divider" aria-hidden="true"><i class="fa-solid fa-right-left"></i></span>
+                <div class="pom-wheel-col">
+                    <span class="pom-wheel-col__label"><i class="fa-solid fa-mug-hot" aria-hidden="true"></i> BREAK</span>
+                    <div class="pom-wheel-col__drums">
+                        <div class="pom-wheel-drum" id="cte-drum-break-min" role="listbox" aria-label="Minuti break ciclo"></div>
+                        <span class="pom-wheel-col__colon">:</span>
+                        <div class="pom-wheel-drum" id="cte-drum-break-sec" role="listbox" aria-label="Secondi break ciclo"></div>
+                    </div>
+                    <span class="pom-wheel-col__unit">min : sec</span>
+                </div>
+            </div>
+            <input type="number" id="cte-work-min-input"  value="25" min="0" max="120" hidden aria-hidden="true">
+            <input type="number" id="cte-work-sec-input"  value="0"  min="0" max="59"  hidden aria-hidden="true">
+            <input type="number" id="cte-break-min-input" value="5"  min="0" max="60"  hidden aria-hidden="true">
+            <input type="number" id="cte-break-sec-input" value="0"  min="0" max="59"  hidden aria-hidden="true">
+            <div class="pom-cycle-sheet__footer">
+                <button class="pom-cycle-sheet__cancel" id="pom-cycle-sheet-cancel" type="button">ANNULLA</button>
+                <button class="pom-cycle-sheet__save" id="pom-cycle-sheet-save" type="button">
+                    <i class="fa-solid fa-check" aria-hidden="true"></i> SALVA
                 </button>
             </div>
         </div>

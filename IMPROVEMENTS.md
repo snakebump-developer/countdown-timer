@@ -38,9 +38,13 @@
 ### Esperienza utente e personalizzazione
 
 - [ ] **Migliorare il template delle email** - Andare su Firebase e migliorare i template forniti di default in : Autentication -> modelli
+- [ ] **notifiche pop up di logout login ecc su telefono sono sopra la status bar** - migliorare le notifiche push per non farle visualizzare troppo in alto sopra la status bar che non si leggono.
 - [ ] **Libreria suoni di fine sessione** — Scelta tra: beep sintetico (attuale), campanello, gong zen, chime, white noise tick — differenziatore chiave rispetto a competitor
 - [ ] **Suoni/musica ambiente durante la sessione** — Rain, café noise, forest: categoria molto richiesta su app productivity (vedi Brain.fm)
 - [ ] **Temi visivi multipli** — Almeno 3 temi: Dark (attuale), Light, Hacker Green — può essere la prima feature premium
+- [x] **Timer pomodoro challenge con cicli custom** - l'utente può scegliere se avere tutti i cicli della pomodoro challenge tutti uguali tra focus e break oppure decidere ad esempio di impostare un timer di 10 min di focus e 5min di break poi 15min di focus e 2min di break e cosi via a suo piacimento in base al numero di cicli che imposta, in modo tutto non invasimo e comodo da gestire per l'utente.
+I tempi diversi da gestire sempre con il wheel picker.
+Questa aggiunta comporterà l'aggiornamento dei tempi totali in modo differente in base ai cicli diversi scelti dall'utente.
 - [ ] **Task/progetto associato alla sessione** — Campo opzionale "Su cosa stai lavorando?" → la sessione viene salvata con label (es. "Capitolo 3", "Coding", "Studio")
 - [ ] **Animazioni di completamento** — Particle burst / confetti al termine del ciclo Pomodoro per un momento di celebrazione (microinterazione ad alto impatto emotivo)
 - [ ] **Tutorial onboarding** — Tooltip o stepper al primo avvio che spiega il metodo Pomodoro e le funzionalità principali

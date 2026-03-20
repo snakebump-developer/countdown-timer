@@ -21,6 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let pomIsInfinite = false;
     let pomSettingsOpen = false;
 
+    // Custom cycles state
+    let pomCustomMode   = false;
+    let pomCyclesList   = []; // [{workMin, workSec, breakMin, breakSec}]
+    let editingCycleIdx = -1;
+
     // Elements
     const timeDisplay = document.getElementById('time-display');
     const presetBtns = document.querySelectorAll('.presets__btn');
@@ -51,6 +56,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const pomSwitchEl = document.querySelector('.pom-switch');
     const pomSettingsBtn = document.getElementById('pom-settings-btn');
     const pomSettingsChevron = document.getElementById('pom-settings-chevron');
+
+    // Custom cycles elements
+    const pomCustomCyclesBtn = document.getElementById('pom-custom-cycles-btn');
+    const pomCyclesEditor    = document.getElementById('pom-cycles-editor');
+    const pomCycleListEl     = document.getElementById('pom-cycle-list');
+    const pomAddCycleBtn     = document.getElementById('pom-add-cycle-btn');
+    // Cycle sheet elements
+    const cycleSheet         = document.getElementById('pom-cycle-sheet');
+    const cycleSheetBackdrop = document.getElementById('pom-cycle-sheet-backdrop');
+    const cycleSheetTitle    = document.getElementById('pom-cycle-sheet-title');
+    const cycleSheetClose    = document.getElementById('pom-cycle-sheet-close');
+    const cycleSheetCancel   = document.getElementById('pom-cycle-sheet-cancel');
+    const cycleSheetSave     = document.getElementById('pom-cycle-sheet-save');
+    const cteWorkMinInput    = document.getElementById('cte-work-min-input');
+    const cteWorkSecInput    = document.getElementById('cte-work-sec-input');
+    const cteBreakMinInput   = document.getElementById('cte-break-min-input');
+    const cteBreakSecInput   = document.getElementById('cte-break-sec-input');
 
     // History elements
     const histBtn          = document.getElementById('pom-hist-btn');
@@ -724,10 +746,184 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.max(1, m * 60 + s);
     }
 
+    // ── Custom Cycles Helpers ─────────────────────────────────────
+
+    // Returns work seconds for a specific cycle index (wraps in infinite mode)
+    function getCycleWorkSec(idx) {
+        if (!pomCustomMode || pomCyclesList.length === 0) return getPomWorkSec();
+        const c = pomCyclesList[idx % pomCyclesList.length];
+        return Math.max(1, c.workMin * 60 + c.workSec);
+    }
+
+    // Returns break seconds for a specific cycle index (wraps in infinite mode)
+    function getCycleBreakSec(idx) {
+        if (!pomCustomMode || pomCyclesList.length === 0) return getPomBreakSec();
+        const c = pomCyclesList[idx % pomCyclesList.length];
+        return Math.max(1, c.breakMin * 60 + c.breakSec);
+    }
+
+    function renderCycleRows() {
+        pomCycleListEl.innerHTML = '';
+        pomCyclesList.forEach((c, i) => {
+            const wm = String(c.workMin).padStart(2, '0');
+            const ws = String(c.workSec).padStart(2, '0');
+            const bm = String(c.breakMin).padStart(2, '0');
+            const bs = String(c.breakSec).padStart(2, '0');
+            const row = document.createElement('div');
+            row.className = 'pom-cycle-row';
+            row.dataset.idx = i;
+            row.innerHTML = `
+                <span class="pom-cycle-row__num">${i + 1}</span>
+                <div class="pom-cycle-row__times">
+                    <span class="pom-cycle-row__badge">
+                        <i class="fa-solid fa-brain" aria-hidden="true"></i>
+                        <span>${wm}:${ws}</span>
+                    </span>
+                    <span class="pom-cycle-row__arrow" aria-hidden="true">→</span>
+                    <span class="pom-cycle-row__badge pom-cycle-row__badge--break">
+                        <i class="fa-solid fa-mug-hot" aria-hidden="true"></i>
+                        <span>${bm}:${bs}</span>
+                    </span>
+                </div>
+                <button class="pom-cycle-row__edit" type="button" aria-label="Modifica ciclo ${i + 1}">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button class="pom-cycle-row__del" type="button" aria-label="Elimina ciclo ${i + 1}"${pomCyclesList.length === 1 ? ' disabled' : ''}>
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>`;
+            row.querySelector('.pom-cycle-row__edit').addEventListener('click', () => openCycleSheet(i));
+            row.querySelector('.pom-cycle-row__del').addEventListener('click', () => {
+                if (pomCyclesList.length <= 1) return;
+                pomCyclesList.splice(i, 1);
+                pomCyclesInput.value = pomCyclesList.length;
+                if (isPomodoroMode) updatePhaseLabel();
+                renderCycleRows();
+            });
+            pomCycleListEl.appendChild(row);
+        });
+    }
+
+    function addNewCycle() {
+        const last = pomCyclesList[pomCyclesList.length - 1] || { workMin: 25, workSec: 0, breakMin: 5, breakSec: 0 };
+        pomCyclesList.push({ ...last });
+        pomCyclesInput.value = pomCyclesList.length;
+        if (isPomodoroMode) updatePhaseLabel();
+        renderCycleRows();
+        setTimeout(() => pomCycleListEl.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    }
+
+    function toggleCustomMode() {
+        if (isRunning) return;
+        if (!pomCustomMode) {
+            const n    = Math.max(1, parseInt(pomCyclesInput.value, 10) || 4);
+            const wMin = Math.max(0, parseInt(pomWorkMinInput.value, 10) || 0);
+            const wSec = Math.min(59, Math.max(0, parseInt(pomWorkSecInput.value, 10) || 0));
+            const bMin = Math.max(0, parseInt(pomBreakMinInput.value, 10) || 0);
+            const bSec = Math.min(59, Math.max(0, parseInt(pomBreakSecInput.value, 10) || 0));
+            pomCyclesList = Array.from({ length: n }, () => ({ workMin: wMin, workSec: wSec, breakMin: bMin, breakSec: bSec }));
+            pomCustomMode = true;
+            pomCustomCyclesBtn.setAttribute('aria-pressed', 'true');
+            pomCustomCyclesBtn.classList.add('pom-config__custom-btn--active');
+            pomCyclesInput.disabled = true;
+            document.getElementById('pom-cycles-dec').disabled = true;
+            document.getElementById('pom-cycles-inc').disabled = true;
+            pomInfiniteBtn.disabled = true;
+            renderCycleRows();
+            if (isPomodoroMode && pomSettingsOpen) pomCyclesEditor.hidden = false;
+            if (isPomodoroMode && !isRunning) {
+                totalSeconds = getCycleWorkSec(pomCyclesCompleted);
+                currentSeconds = totalSeconds;
+                updateDisplay();
+            }
+            if (isPomodoroMode) updatePhaseLabel();
+        } else {
+            pomCustomMode = false;
+            pomCyclesList = [];
+            pomCustomCyclesBtn.setAttribute('aria-pressed', 'false');
+            pomCustomCyclesBtn.classList.remove('pom-config__custom-btn--active');
+            pomCyclesInput.disabled = pomIsInfinite;
+            document.getElementById('pom-cycles-dec').disabled = false;
+            document.getElementById('pom-cycles-inc').disabled = false;
+            pomInfiniteBtn.disabled = false;
+            pomCyclesEditor.hidden = true;
+            if (isPomodoroMode && !isRunning) {
+                totalSeconds = getPomWorkSec();
+                currentSeconds = totalSeconds;
+                updateDisplay();
+            }
+            if (isPomodoroMode) updatePhaseLabel();
+        }
+    }
+
+    // ── Cycle Sheet (drum picker per singolo ciclo) ───────────────
+
+    let cteBuilt = false;
+
+    function buildCycleSheetDrums() {
+        if (cteBuilt) return;
+        cteBuilt = true;
+        buildDrum(document.getElementById('cte-drum-work-min'),  cteWorkMinInput,  0, 120);
+        buildDrum(document.getElementById('cte-drum-work-sec'),  cteWorkSecInput,  0,  59);
+        buildDrum(document.getElementById('cte-drum-break-min'), cteBreakMinInput, 0,  60);
+        buildDrum(document.getElementById('cte-drum-break-sec'), cteBreakSecInput, 0,  59);
+    }
+
+    function openCycleSheet(idx) {
+        editingCycleIdx = idx;
+        buildCycleSheetDrums();
+        const c = pomCyclesList[idx];
+        cteWorkMinInput.value  = c.workMin;
+        cteWorkSecInput.value  = c.workSec;
+        cteBreakMinInput.value = c.breakMin;
+        cteBreakSecInput.value = c.breakSec;
+        const dmWM = document.getElementById('cte-drum-work-min');
+        const dmWS = document.getElementById('cte-drum-work-sec');
+        const dmBM = document.getElementById('cte-drum-break-min');
+        const dmBS = document.getElementById('cte-drum-break-sec');
+        if (dmWM._setVal)  dmWM._setVal(c.workMin);
+        if (dmWS._setVal)  dmWS._setVal(c.workSec);
+        if (dmBM._setVal)  dmBM._setVal(c.breakMin);
+        if (dmBS._setVal)  dmBS._setVal(c.breakSec);
+        cycleSheetTitle.textContent = `MODIFICA CICLO ${idx + 1}`;
+        cycleSheetBackdrop.hidden = false;
+        cycleSheet.hidden = false;
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeCycleSheet() {
+        editingCycleIdx = -1;
+        cycleSheet.hidden = true;
+        cycleSheetBackdrop.hidden = true;
+        document.body.style.overflow = '';
+    }
+
+    function saveCycleSheet() {
+        if (editingCycleIdx < 0 || !pomCyclesList[editingCycleIdx]) { closeCycleSheet(); return; }
+        pomCyclesList[editingCycleIdx] = {
+            workMin:  Math.max(0, parseInt(cteWorkMinInput.value, 10) || 0),
+            workSec:  Math.min(59, Math.max(0, parseInt(cteWorkSecInput.value, 10) || 0)),
+            breakMin: Math.max(0, parseInt(cteBreakMinInput.value, 10) || 0),
+            breakSec: Math.min(59, Math.max(0, parseInt(cteBreakSecInput.value, 10) || 0)),
+        };
+        // Ensure at least 1 second of focus time
+        const c = pomCyclesList[editingCycleIdx];
+        if (c.workMin === 0 && c.workSec === 0) c.workSec = 1;
+        // Update timer display if currently on this cycle's work phase
+        if (isPomodoroMode && !isRunning && pomPhase === 'work' && pomCyclesCompleted === editingCycleIdx) {
+            totalSeconds = getCycleWorkSec(editingCycleIdx);
+            currentSeconds = totalSeconds;
+            updateDisplay();
+        }
+        renderCycleRows();
+        closeCycleSheet();
+    }
+
     function updatePhaseLabel() {
         phaseLabel.className = 'phase-label';
         if (!isPomodoroMode) { phaseLabel.textContent = ''; return; }
-        const maxCycles = Math.max(1, parseInt(pomCyclesInput.value, 10) || 4);
+        const maxCycles = pomCustomMode
+            ? pomCyclesList.length
+            : Math.max(1, parseInt(pomCyclesInput.value, 10) || 4);
         const cycleStr = pomIsInfinite ? '\u221e' : `${pomCyclesCompleted + 1} / ${maxCycles}`;
         if (pomPhase === 'work') {
             phaseLabel.textContent = `— FOCUS \u2014  ${cycleStr}`;
@@ -782,7 +978,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tomatoesTray.innerHTML = '';
 
         stopTimer();
-        totalSeconds = getPomWorkSec();
+        totalSeconds = getCycleWorkSec(0);
         currentSeconds = totalSeconds;
         updateDisplay();
         updatePhaseLabel();
@@ -802,6 +998,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (pomSettingsChevron) pomSettingsChevron.className = 'fa-solid fa-chevron-up pom-switch__settings-chevron';
         document.querySelector('.app')?.classList.remove('pom-settings--collapsed');
+
+        // Mostra cycles editor se custom mode attivo
+        if (pomCustomMode) {
+            pomCyclesEditor.hidden = false;
+            renderCycleRows();
+        }
 
         presetsHeader.classList.add('presets--pomodoro');
         timeDisplay.contentEditable = 'false';
@@ -823,6 +1025,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (pomSettingsBtn) pomSettingsBtn.hidden = true;
         document.querySelector('.app')?.classList.remove('pom-settings--collapsed');
 
+        // Nasconde cycles editor (se visibile)
+        pomCyclesEditor.hidden = true;
+
         updatePhaseLabel();
         updateRingTheme();
 
@@ -843,12 +1048,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (pomSettingsBtn) pomSettingsBtn.setAttribute('aria-expanded', 'true');
             if (pomSettingsChevron) pomSettingsChevron.className = 'fa-solid fa-chevron-up pom-switch__settings-chevron';
             document.querySelector('.app')?.classList.remove('pom-settings--collapsed');
+            if (pomCustomMode) pomCyclesEditor.hidden = false;
         } else {
             pomConfig.classList.remove('pom-config--visible');
             pomConfig.setAttribute('aria-hidden', 'true');
             if (pomSettingsBtn) pomSettingsBtn.setAttribute('aria-expanded', 'false');
             if (pomSettingsChevron) pomSettingsChevron.className = 'fa-solid fa-chevron-down pom-switch__settings-chevron';
             document.querySelector('.app')?.classList.add('pom-settings--collapsed');
+            pomCyclesEditor.hidden = true;
         }
     }
 
@@ -966,20 +1173,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
                     new Notification(`🍅 Sessione focus #${pomCount} completata!`, {
-                        body: `Prenditi una pausa di ${formatTime(getPomBreakSec())}.`
+                        body: `Prenditi una pausa di ${formatTime(getCycleBreakSec(pomCyclesCompleted))}.`
                     });
                 }
 
                 pomPhase = 'break';
-                totalSeconds = getPomBreakSec();
+                totalSeconds = getCycleBreakSec(pomCyclesCompleted);
                 currentSeconds = totalSeconds;
                 updatePhaseLabel();
                 updateRingTheme();
                 updateDisplay();
-                toastSpan.textContent = `🍅  +1 pomodoro! Pausa ${formatTime(getPomBreakSec())} in arrivo…`;
+                toastSpan.textContent = `🍅  +1 pomodoro! Pausa ${formatTime(getCycleBreakSec(pomCyclesCompleted))} in arrivo…`;
             } else {
                 pomCyclesCompleted++;
-                const maxCycles = Math.max(1, parseInt(pomCyclesInput.value, 10) || 4);
+                const maxCycles = pomCustomMode
+                    ? pomCyclesList.length
+                    : Math.max(1, parseInt(pomCyclesInput.value, 10) || 4);
                 const allDone = !pomIsInfinite && pomCyclesCompleted >= maxCycles;
 
                 if (allDone) {
@@ -990,7 +1199,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     pomPhase = 'work';
                     pomCyclesCompleted = 0;
-                    totalSeconds = getPomWorkSec();
+                    totalSeconds = getCycleWorkSec(0);
                     currentSeconds = totalSeconds;
                     updatePhaseLabel();
                     updateRingTheme();
@@ -1008,7 +1217,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 pomPhase = 'work';
-                totalSeconds = getPomWorkSec();
+                totalSeconds = getCycleWorkSec(pomCyclesCompleted);
                 currentSeconds = totalSeconds;
                 updatePhaseLabel();
                 updateRingTheme();
@@ -1198,6 +1407,17 @@ document.addEventListener('DOMContentLoaded', () => {
         pomInfiniteBtn.setAttribute('aria-pressed', String(pomIsInfinite));
         pomCyclesInput.disabled = pomIsInfinite;
         if (isPomodoroMode) updatePhaseLabel();
+    });
+
+    // Custom cycles toggle + cycle sheet controls
+    pomCustomCyclesBtn.addEventListener('click', toggleCustomMode);
+    pomAddCycleBtn.addEventListener('click', addNewCycle);
+    cycleSheetClose.addEventListener('click', closeCycleSheet);
+    cycleSheetCancel.addEventListener('click', closeCycleSheet);
+    cycleSheetBackdrop.addEventListener('click', closeCycleSheet);
+    cycleSheetSave.addEventListener('click', saveCycleSheet);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !cycleSheet.hidden) closeCycleSheet();
     });
 
     // Keyboard shortcuts: Space → start, P → pausa, R → reset
