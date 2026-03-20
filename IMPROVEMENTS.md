@@ -44,7 +44,7 @@
 - [ ] **Task/progetto associato alla sessione** — Campo opzionale "Su cosa stai lavorando?" → la sessione viene salvata con label (es. "Capitolo 3", "Coding", "Studio")
 - [ ] **Animazioni di completamento** — Particle burst / confetti al termine del ciclo Pomodoro per un momento di celebrazione (microinterazione ad alto impatto emotivo)
 - [ ] **Tutorial onboarding** — Tooltip o stepper al primo avvio che spiega il metodo Pomodoro e le funzionalità principali
-- [x] **Timer visibile con scorrimento in background con schermo bloccato nell'area notiche del telefono** — se blocco lo schermo posso vedere nel blocco schermo il timer che va avanti e decidere se metterlo in pausa o eseguire un restart.
+- [ ] **Timer visibile con scorrimento in background con schermo bloccato nell'area notifiche del telefono** — ❌ Non realizzabile in una PWA plain HTML/CSS/JS: su iOS richiede ActivityKit/Live Activities (framework nativo Swift); su Android richiede un Service nativo. La Media Session API (l'unica alternativa web) mostra un widget stile lettore musicale con pulsanti prev/next che entra in conflitto con le app musicali dell'utente. Nessuna API web standard permette un widget persistente nel lock screen del telefono.
 - [ ] **Widget compatto / Picture-in-Picture** — Timer sempre visibile sopra le altre finestre tramite `document.pictureInPictureElement` (API supportata su Chrome)
 
 ### Dati & Sincronizzazione

@@ -145,99 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ── Media Session API (lock screen / area notifiche) ─────────
-    // Fonte: https://developer.mozilla.org/en-US/docs/Web/API/Media_Session_API
-    // Richiede audio attivo → usiamo un buffer silenzioso in loop per mantenere
-    // il contesto audio vivo in background senza consumare risorse udibili.
-    let silentAudioEl    = null;
-    let silentAudioURI   = null;
-    let mediaSessionReady = false;
-
-    // iOS Safari richiede un elemento <audio> HTML in riproduzione per mostrare
-    // il widget nel lock screen. Un AudioContext da solo non è sufficiente.
-    // Generiamo un WAV silenzioso (1s, 8kHz mono 8-bit) come data URI.
-    function getSilentAudioURI() {
-        if (silentAudioURI) return silentAudioURI;
-        const sr = 8000;
-        const buf = new ArrayBuffer(44 + sr);
-        const v = new DataView(buf);
-        const ws = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
-        ws(0, 'RIFF'); v.setUint32(4, 36 + sr, true); ws(8, 'WAVE'); ws(12, 'fmt ');
-        v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
-        v.setUint32(24, sr, true); v.setUint32(28, sr, true);
-        v.setUint16(32, 1, true); v.setUint16(34, 8, true);
-        ws(36, 'data'); v.setUint32(40, sr, true);
-        for (let i = 0; i < sr; i++) v.setUint8(44 + i, 128); // 128 = silenzio per PCM 8-bit unsigned
-        const bytes = new Uint8Array(buf);
-        let b = '';
-        bytes.forEach(x => b += String.fromCharCode(x));
-        silentAudioURI = 'data:audio/wav;base64,' + btoa(b);
-        return silentAudioURI;
-    }
-
-    function startSilentAudio() {
-        try {
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-            if (!silentAudioEl) {
-                silentAudioEl = document.createElement('audio');
-                silentAudioEl.src = getSilentAudioURI();
-                silentAudioEl.loop = true;
-                silentAudioEl.volume = 0.001; // Inudibile
-                document.body.appendChild(silentAudioEl);
-            }
-            silentAudioEl.play().catch(() => {});
-        } catch (e) { /* Audio non supportato */ }
-    }
-
-    function stopSilentAudio() {
-        if (silentAudioEl) {
-            silentAudioEl.pause();
-            silentAudioEl.currentTime = 0;
-        }
-    }
-
-    function updateMediaSession() {
-        if (!('mediaSession' in navigator)) return;
-        const timeString = formatTime(currentSeconds);
-        let title, artist;
-        if (isPomodoroMode) {
-            const phase    = pomPhase === 'work' ? '🧠 FOCUS' : '☕ BREAK';
-            const maxCy    = pomIsInfinite ? '∞' : (parseInt(pomCyclesInput.value, 10) || 4);
-            title  = `${phase}  ${timeString}`;
-            artist = `Ciclo ${pomCyclesCompleted + 1} / ${maxCy}`;
-        } else {
-            title  = `⏱ ${timeString}`;
-            artist = isRunning ? 'Timer in esecuzione' : 'In pausa';
-        }
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title,
-            artist,
-            album:   'Futuristic Timer',
-            artwork: [{ src: 'icon-512.svg', sizes: 'any', type: 'image/svg+xml' }],
-        });
-        navigator.mediaSession.playbackState = isRunning ? 'playing' : 'paused';
-    }
-
-    function setupMediaSession() {
-        if (!('mediaSession' in navigator) || mediaSessionReady) return;
-        mediaSessionReady = true;
-        navigator.mediaSession.setActionHandler('play', () => {
-            requestPermissions();
-            playStart();
-            startTimer();
-        });
-        navigator.mediaSession.setActionHandler('pause', () => {
-            requestPermissions();
-            playPause();
-            stopTimer();
-        });
-        navigator.mediaSession.setActionHandler('stop', () => {
-            requestPermissions();
-            playPause();
-            resetTimer();
-        });
-    }
-
     // Update SVG progress ring
     function updateRing() {
         const elapsed = totalSeconds - currentSeconds;
@@ -891,15 +798,9 @@ document.addEventListener('DOMContentLoaded', () => {
         updateToggleButton();
         timeDisplay.contentEditable = "false";
 
-        // Avvia l'audio silenzioso e la Media Session per lock screen
-        startSilentAudio();
-        setupMediaSession();
-        updateMediaSession();
-
         timerId = setInterval(() => {
             currentSeconds--;
             updateDisplay();
-            updateMediaSession(); // Aggiorna titolo sul lock screen ogni secondo
 
             if (currentSeconds <= 0) {
                 stopTimer();
@@ -914,15 +815,12 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(timerId);
         updateToggleButton();
         stopAlarm();
-        stopSilentAudio();
-        updateMediaSession(); // Aggiorna stato a 'paused' sul lock screen
     }
 
     function resetTimer() {
         stopTimer();
         currentSeconds = totalSeconds;
         updateDisplay();
-        updateMediaSession();
     }
 
     function updateToggleButton() {
