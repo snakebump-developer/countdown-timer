@@ -474,9 +474,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Focus time effettivo: usa la durata salvata se disponibile, altrimenti 25 min di default
-        const focusMins  = Math.round(history.reduce((acc, e) => acc + (e.dur ? e.dur / 60 : 25), 0));
-        const focusHours = Math.floor(focusMins / 60);
-        const focusMinR  = focusMins % 60;
+        const focusTotalSecs = history.reduce((acc, e) => acc + (e.dur ? e.dur : 25 * 60), 0);
+        const focusHours = Math.floor(focusTotalSecs / 3600);
+        const focusMinR  = Math.floor((focusTotalSecs % 3600) / 60);
+        const focusSecR  = focusTotalSecs % 60;
 
         // Ultimi 7 giorni per il grafico
         const last7 = [];
@@ -493,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const max7 = Math.max(1, ...last7.map(d => d.count));
 
-        return { total, todayCount, weekCount, focusHours, focusMinR, avgPerDay, activeDays, bestLabel, bestCount, last7, max7 };
+        return { total, todayCount, weekCount, focusHours, focusMinR, focusSecR, avgPerDay, activeDays, bestLabel, bestCount, last7, max7 };
     }
 
     function renderStats() {
@@ -535,7 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="stats-modal__focus-time">
                 <span class="stats-modal__focus-label">⏱ FOCUS TIME TOTALE</span>
-                <span class="stats-modal__focus-val">${s.focusHours}h ${String(s.focusMinR).padStart(2,'0')}m</span>
+                <span class="stats-modal__focus-val">${s.focusHours}h ${String(s.focusMinR).padStart(2,'0')}m ${String(s.focusSecR).padStart(2,'0')}s</span>
                 <span class="stats-modal__focus-note">Basato sulla durata effettiva di ogni sessione</span>
             </div>
             <div class="stats-modal__row2">
