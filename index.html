@@ -545,70 +545,6 @@
             </div>
         </div>
 
-        <!-- ── Sound Settings Panel ── -->
-        <div class="sound-panel" id="sound-panel" role="dialog" aria-modal="true" aria-labelledby="sound-panel-title" hidden>
-            <div class="sound-panel__backdrop" id="sound-backdrop"></div>
-            <div class="sound-panel__drawer">
-                <div class="sound-panel__header">
-                    <h3 class="sound-panel__title" id="sound-panel-title">
-                        <i class="fa-solid fa-music"></i> SUONI
-                    </h3>
-                    <button class="sound-panel__close" id="sound-close-btn" aria-label="Chiudi impostazioni suoni">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-
-                <!-- Suono fine sessione -->
-                <div class="sound-panel__section">
-                    <span class="sound-panel__section-lbl">
-                        <i class="fa-solid fa-bell"></i> SUONO FINE SESSIONE
-                    </span>
-                    <div class="sound-panel__opts" id="end-sound-opts">
-                        <button class="sound-opt-btn" data-end-sound="beep" aria-pressed="true">
-                            <i class="fa-solid fa-wave-square"></i> BEEP
-                        </button>
-                        <button class="sound-opt-btn" data-end-sound="bell" aria-pressed="false">
-                            <i class="fa-solid fa-bell"></i> CAMPANA
-                        </button>
-                        <button class="sound-opt-btn" data-end-sound="gong" aria-pressed="false">
-                            <i class="fa-solid fa-circle-dot"></i> GONG
-                        </button>
-                        <button class="sound-opt-btn" data-end-sound="chime" aria-pressed="false">
-                            <i class="fa-solid fa-music"></i> CHIME
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Suoni ambiente -->
-                <div class="sound-panel__section">
-                    <span class="sound-panel__section-lbl">
-                        <i class="fa-solid fa-wind"></i> SUONI AMBIENTE
-                    </span>
-                    <div class="sound-panel__opts" id="ambient-sound-opts">
-                        <button class="sound-opt-btn" data-ambient-sound="off" aria-pressed="true">
-                            <i class="fa-solid fa-volume-xmark"></i> OFF
-                        </button>
-                        <button class="sound-opt-btn" data-ambient-sound="rain" aria-pressed="false">
-                            🌧️ PIOGGIA
-                        </button>
-                        <button class="sound-opt-btn" data-ambient-sound="cafe" aria-pressed="false">
-                            ☕ CAFFÈ
-                        </button>
-                        <button class="sound-opt-btn" data-ambient-sound="forest" aria-pressed="false">
-                            🌿 FORESTA
-                        </button>
-                    </div>
-                    <div class="sound-panel__vol-row" id="ambient-vol-row" hidden>
-                        <i class="fa-solid fa-volume-low"></i>
-                        <input type="range" id="ambient-vol-slider" class="sound-panel__vol-slider"
-                            min="0" max="100" value="50" aria-label="Volume suoni ambiente">
-                        <i class="fa-solid fa-volume-high"></i>
-                        <span class="sound-panel__vol-val" id="ambient-vol-val">50%</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- ── Cycle time editor sheet ── -->
         <div class="pom-cycle-sheet-backdrop" id="pom-cycle-sheet-backdrop" hidden></div>
         <div class="pom-cycle-sheet" id="pom-cycle-sheet" hidden>
@@ -648,6 +584,70 @@
                 <button class="pom-cycle-sheet__save" id="pom-cycle-sheet-save" type="button">
                     <i class="fa-solid fa-check" aria-hidden="true"></i> SALVA
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Sound Settings Panel (figlio diretto di body per position:fixed corretto) ── -->
+    <div class="sound-panel" id="sound-panel" role="dialog" aria-modal="true" aria-labelledby="sound-panel-title" hidden>
+        <div class="sound-panel__backdrop" id="sound-backdrop"></div>
+        <div class="sound-panel__drawer">
+            <div class="sound-panel__header">
+                <h3 class="sound-panel__title" id="sound-panel-title">
+                    <i class="fa-solid fa-music"></i> SUONI
+                </h3>
+                <button class="sound-panel__close" id="sound-close-btn" aria-label="Chiudi impostazioni suoni">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Suono fine sessione -->
+            <div class="sound-panel__section">
+                <span class="sound-panel__section-lbl">
+                    <i class="fa-solid fa-bell"></i> SUONO FINE SESSIONE
+                </span>
+                <div class="sound-panel__opts" id="end-sound-opts">
+                    <button class="sound-opt-btn" data-end-sound="beep" aria-pressed="true">
+                        <i class="fa-solid fa-wave-square"></i> BEEP
+                    </button>
+                    <button class="sound-opt-btn" data-end-sound="bell" aria-pressed="false">
+                        <i class="fa-solid fa-bell"></i> CAMPANA
+                    </button>
+                    <button class="sound-opt-btn" data-end-sound="gong" aria-pressed="false">
+                        <i class="fa-solid fa-circle-dot"></i> GONG
+                    </button>
+                    <button class="sound-opt-btn" data-end-sound="chime" aria-pressed="false">
+                        <i class="fa-solid fa-music"></i> CHIME
+                    </button>
+                </div>
+            </div>
+
+            <!-- Suoni ambiente -->
+            <div class="sound-panel__section">
+                <span class="sound-panel__section-lbl">
+                    <i class="fa-solid fa-wind"></i> SUONI AMBIENTE
+                </span>
+                <div class="sound-panel__opts" id="ambient-sound-opts">
+                    <button class="sound-opt-btn" data-ambient-sound="off" aria-pressed="true">
+                        <i class="fa-solid fa-volume-xmark"></i> OFF
+                    </button>
+                    <button class="sound-opt-btn" data-ambient-sound="rain" aria-pressed="false">
+                        🌧️ PIOGGIA
+                    </button>
+                    <button class="sound-opt-btn" data-ambient-sound="cafe" aria-pressed="false">
+                        ☕ CAFFÈ
+                    </button>
+                    <button class="sound-opt-btn" data-ambient-sound="forest" aria-pressed="false">
+                        🌿 FORESTA
+                    </button>
+                </div>
+                <div class="sound-panel__vol-row" id="ambient-vol-row" hidden>
+                    <i class="fa-solid fa-volume-low"></i>
+                    <input type="range" id="ambient-vol-slider" class="sound-panel__vol-slider"
+                        min="0" max="100" value="50" aria-label="Volume suoni ambiente">
+                    <i class="fa-solid fa-volume-high"></i>
+                    <span class="sound-panel__vol-val" id="ambient-vol-val">50%</span>
+                </div>
             </div>
         </div>
     </div>
