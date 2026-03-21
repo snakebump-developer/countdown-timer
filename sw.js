@@ -1,5 +1,5 @@
 // ── Versione build: aggiornare ad ogni deploy (YYYY-MM-DD.N) ────
-const BUILD_VERSION = '2026-03-21.1';
+const BUILD_VERSION = '2026-03-21.2';
 const CACHE_NAME = `futuristic-timer-v3-${BUILD_VERSION}`;
 
 // Asset statici da precachare (aggiornaci la versione ad ogni deploy)

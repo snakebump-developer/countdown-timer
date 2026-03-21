@@ -41,6 +41,7 @@
 - [x] **notifiche pop up di logout login ecc su telefono sono sopra la status bar** - migliorare le notifiche push / pop up per non farle visualizzare troppo in alto sopra la status bar dei telelfoni sopratutto apple che non si leggono per il notch.
 - [x] **Libreria suoni di fine sessione** — Scelta tra: beep sintetico (attuale), campanello, gong zen, chime, white noise tick — differenziatore chiave rispetto a competitor
 - [x] **Suoni/musica ambiente durante la sessione** — Rain, café noise, forest: categoria molto richiesta su app productivity (vedi Brain.fm)
+- [ ] **Musica e Suoni presi da pixabay** - Aggiungere e scaricare i suoni e musiche di pixabay https://pixabay.com/sound-effects/search/cafe/
 - [ ] **Temi visivi multipli** — Almeno 3 temi: Dark (attuale), Light, Hacker Green — può essere la prima feature premium
 - [x] **Timer pomodoro challenge con cicli custom** - l'utente può scegliere se avere tutti i cicli della pomodoro challenge tutti uguali tra focus e break oppure decidere ad esempio di impostare un timer di 10 min di focus e 5min di break poi 15min di focus e 2min di break e cosi via a suo piacimento in base al numero di cicli che imposta, in modo tutto non invasimo e comodo da gestire per l'utente.
 I tempi diversi da gestire sempre con il wheel picker.
@@ -115,6 +116,7 @@ Se possibile far stare sia focus che break sullo stesso asse di modifica.
 ### Espansione piattaforma
 
 - [ ] **Shortcut PWA nel manifest** — `shortcuts` array nel manifest per "Avvia Focus 25min" direttamente dal launcher Android/iOS
+- [ ] **Migliorare il codice del progetto** -  ristrtturando cartelle e compattando duplicazioni di codice e funzioni
 - [ ] **App desktop (Tauri)** — App nativa macOS/Windows/Linux partendo dagli stessi file HTML/JS (Tauri è più leggera di Electron)
 - [ ] **API REST pubblica** — Endpoint per leggere le proprie statistiche: permette integrazioni con Notion, Obsidian, Zapier
 - [ ] **Integrazione Todoist/Things** — Importare task e associarli alle sessioni Pomodoro
