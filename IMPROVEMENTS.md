@@ -38,9 +38,9 @@
 ### Esperienza utente e personalizzazione
 
 - [ ] **Migliorare il template delle email** - Andare su Firebase e migliorare i template forniti di default in : Autentication -> modelli
-- [ ] **notifiche pop up di logout login ecc su telefono sono sopra la status bar** - migliorare le notifiche push per non farle visualizzare troppo in alto sopra la status bar che non si leggono.
-- [ ] **Libreria suoni di fine sessione** — Scelta tra: beep sintetico (attuale), campanello, gong zen, chime, white noise tick — differenziatore chiave rispetto a competitor
-- [ ] **Suoni/musica ambiente durante la sessione** — Rain, café noise, forest: categoria molto richiesta su app productivity (vedi Brain.fm)
+- [x] **notifiche pop up di logout login ecc su telefono sono sopra la status bar** - migliorare le notifiche push / pop up per non farle visualizzare troppo in alto sopra la status bar dei telelfoni sopratutto apple che non si leggono per il notch.
+- [x] **Libreria suoni di fine sessione** — Scelta tra: beep sintetico (attuale), campanello, gong zen, chime, white noise tick — differenziatore chiave rispetto a competitor
+- [x] **Suoni/musica ambiente durante la sessione** — Rain, café noise, forest: categoria molto richiesta su app productivity (vedi Brain.fm)
 - [ ] **Temi visivi multipli** — Almeno 3 temi: Dark (attuale), Light, Hacker Green — può essere la prima feature premium
 - [x] **Timer pomodoro challenge con cicli custom** - l'utente può scegliere se avere tutti i cicli della pomodoro challenge tutti uguali tra focus e break oppure decidere ad esempio di impostare un timer di 10 min di focus e 5min di break poi 15min di focus e 2min di break e cosi via a suo piacimento in base al numero di cicli che imposta, in modo tutto non invasimo e comodo da gestire per l'utente.
 I tempi diversi da gestire sempre con il wheel picker.
@@ -70,6 +70,11 @@ Questa aggiunta comporterà l'aggiornamento dei tempi totali in modo differente 
 ### Qualità e professionalità
 
 - [ ] **Changelog in-app post-aggiornamento** — Mostrare un bannerino "Novità in questa versione" dopo ogni aggiornamento SW (usa il `BUILD_VERSION` già presente)
+- [ ] **Integrazione long break** - la Pomodoro challenge richiede una long break dopo 4 pomodori in genere, la quale è di 15min il successivo pomodoro avrà poi una pausa di 5min fino al 4° successivo e cosi via.
+Questo vale per le impostazioni di default.
+Se si usano i cicli personalizzati lasciare spazio all'utente per poter scegliere le impostazioni della long break inseribili dopo un tot di cicli guando vuole lui.
+- [ ] **Integrazione drag and drop per cicli personalizzati** - nell'impostare i cicli personalizzati l'utente può anche fare drag and drop r spostare in modo rapido i tempi creati
+- [ ] **salvare nel DB le impostazioni dei cicli personalizzati** - Quando un utente personalizza i cicli la modifica deve rimanere salvata cosi da non doverla reimpostare.
 - [ ] **Pagina Privacy Policy** — Obbligatoria per GDPR e necessaria per distribuire su app store / monetizzare con ads
 - [ ] **Pagina Termini di Servizio** — Necessaria prima di qualsiasi piano a pagamento
 - [ ] **Cookie consent banner (GDPR)** — Necessario se in futuro si integrano analytics di terze parti (Google Analytics, Mixpanel)
@@ -135,4 +140,4 @@ Se possibile far stare sia focus che break sullo stesso asse di modifica.
 
 ---
 
-*Ultimo aggiornamento: 2026-03-20 (Account linking anonimo→registrato + Notifiche Push Web Push API)*
+*Ultimo aggiornamento: 2026-03-21 (Notifiche status bar + Libreria suoni fine sessione + Suoni ambiente con sync Firebase)*

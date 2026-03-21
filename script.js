@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const HISTORY_MAX   = 500;
     const DAILY_GOAL_KEY = 'daily_goal';
     const DAILY_GOAL_DEF = 8;
+    const SOUND_PREF_KEY = 'sound_prefs';
 
     // State
     let totalSeconds = 300;
@@ -25,6 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let pomCustomMode   = false;
     let pomCyclesList   = []; // [{workMin, workSec, breakMin, breakSec}]
     let editingCycleIdx = -1;
+
+    // Sound state
+    let soundPrefs   = { endSound: 'beep', ambientSound: 'off', ambientVolume: 50 };
+    let ambientNodes = null;
 
     // Elements
     const timeDisplay = document.getElementById('time-display');
@@ -103,11 +108,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const dailyGoalSetBtn  = document.getElementById('daily-goal-set');
     const dailyGoalEditBtn = document.getElementById('daily-goal-edit-btn');
 
+    // Sound Panel elements
+    const soundBtn         = document.getElementById('sound-btn');
+    const soundBtnWrap     = document.getElementById('sound-btn-wrap');
+    const soundPanel       = document.getElementById('sound-panel');
+    const soundBackdrop    = document.getElementById('sound-backdrop');
+    const soundCloseBtn    = document.getElementById('sound-close-btn');
+    const endSoundOpts     = document.getElementById('end-sound-opts');
+    const ambientSoundOpts = document.getElementById('ambient-sound-opts');
+    const ambientVolRow    = document.getElementById('ambient-vol-row');
+    const ambientVolSlider = document.getElementById('ambient-vol-slider');
+    const ambientVolVal    = document.getElementById('ambient-vol-val');
+
     // Init
     updateDisplay();
     updateRing();
     updateHistoryBtnVisibility();
     updateDailyGoal();
+
+    // Load sound preferences from localStorage
+    (function () {
+        try {
+            const saved = JSON.parse(localStorage.getItem(SOUND_PREF_KEY) || 'null');
+            if (saved && typeof saved === 'object') soundPrefs = { ...soundPrefs, ...saved };
+        } catch (e) {}
+    })();
 
     // Sound Synthesis (Web Audio API)
     let audioCtx = null;
@@ -169,6 +194,297 @@ document.addEventListener('DOMContentLoaded', () => {
             alarmInterval = null;
         }
     }
+
+    // ── Sound Library (fine sessione) ────────────────────────────
+
+    function playEndBell() {
+        if (!audioCtx || audioCtx.state === 'closed') return;
+        try {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            // Campana: fondamentale + armoniche con decay lungo
+            [[880, 0.15], [1100, 0.07], [1320, 0.04], [1760, 0.025]].forEach(([freq, vol], i) => {
+                const osc  = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = i === 0 ? 'sine' : 'triangle';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.005);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2.8);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 2.8);
+            });
+        } catch (e) {}
+    }
+
+    function playEndGong() {
+        if (!audioCtx || audioCtx.state === 'closed') return;
+        try {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            // Gong zen: due freq vicine per battimento + ottava superiore
+            [[110, 0.28], [113, 0.14], [220, 0.07]].forEach(([freq, vol]) => {
+                const osc  = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.012);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4.5);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 4.5);
+            });
+        } catch (e) {}
+    }
+
+    function playEndChime() {
+        if (!audioCtx || audioCtx.state === 'closed') return;
+        try {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            // Chime ascendente: E5 → G#5 → B5 → E6
+            [659, 830, 988, 1318].forEach((freq, i) => {
+                const t    = audioCtx.currentTime + i * 0.22;
+                const osc  = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, t);
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.12, t + 0.008);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 1.4);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(t);
+                osc.stop(t + 1.4);
+            });
+        } catch (e) {}
+    }
+
+    // Riproduce il suono di fine sessione scelto dall'utente.
+    // preview=true → solo un click, non il ciclo ripetuto del beep
+    function playEndSound(preview) {
+        stopAlarm();
+        switch (soundPrefs.endSound) {
+            case 'bell':  playEndBell();  break;
+            case 'gong':  playEndGong();  break;
+            case 'chime': playEndChime(); break;
+            default: // 'beep'
+                if (preview) {
+                    playSynthBeep(1200, 'square', 0.22, 0.1);
+                } else {
+                    playAlarm();
+                }
+        }
+    }
+
+    // ── Ambient Sound Engine ──────────────────────────────────────
+
+    function createNoiseBuffer(type) {
+        if (!audioCtx) return null;
+        const sr      = audioCtx.sampleRate;
+        const bufSize = sr * 4; // 4s loop stereo
+        const buf = audioCtx.createBuffer(2, bufSize, sr);
+        for (let ch = 0; ch < 2; ch++) {
+            const data = buf.getChannelData(ch);
+            if (type === 'white') {
+                for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+            } else { // brown: integrazione rumore bianco
+                let last = 0;
+                for (let i = 0; i < bufSize; i++) {
+                    last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02;
+                    data[i] = Math.min(1, Math.max(-1, last * 3.5));
+                }
+            }
+        }
+        return buf;
+    }
+
+    function stopAmbient() {
+        if (!ambientNodes) return;
+        ambientNodes.sources.forEach(s => { try { s.stop(); } catch (e) {} });
+        ambientNodes = null;
+        updateAmbientIndicator();
+    }
+
+    function startAmbient(type) {
+        stopAmbient();
+        if (!audioCtx || type === 'off') {
+            soundPrefs.ambientSound = 'off';
+            updateAmbientIndicator();
+            saveSoundPrefs();
+            return;
+        }
+        if (audioCtx.state === 'closed') return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const vol = soundPrefs.ambientVolume / 100;
+        let nodes = null;
+        try {
+            const noiseBuf = createNoiseBuffer(type === 'cafe' ? 'brown' : 'white');
+            if (!noiseBuf) return;
+
+            const src      = audioCtx.createBufferSource();
+            src.buffer     = noiseBuf;
+            src.loop       = true;
+            const gainNode = audioCtx.createGain();
+            const sources  = [src];
+
+            if (type === 'rain') {
+                const lp = audioCtx.createBiquadFilter();
+                lp.type            = 'lowpass';
+                lp.frequency.value = 620;
+                lp.Q.value         = 0.3;
+                gainNode.gain.value = vol * 0.20;
+                src.connect(lp);
+                lp.connect(gainNode);
+            } else if (type === 'cafe') {
+                const bp = audioCtx.createBiquadFilter();
+                bp.type            = 'bandpass';
+                bp.frequency.value = 380;
+                bp.Q.value         = 0.9;
+                gainNode.gain.value = vol * 0.30;
+                src.connect(bp);
+                bp.connect(gainNode);
+            } else if (type === 'forest') {
+                const hp = audioCtx.createBiquadFilter();
+                hp.type            = 'highpass';
+                hp.frequency.value = 1100;
+                hp.Q.value         = 0.4;
+                // LFO per variazione vento
+                const lfo     = audioCtx.createOscillator();
+                const lfoGain = audioCtx.createGain();
+                lfo.frequency.value = 0.12;
+                lfoGain.gain.value  = vol * 0.06;
+                lfo.connect(lfoGain);
+                lfoGain.connect(gainNode.gain);
+                gainNode.gain.value = vol * 0.15;
+                src.connect(hp);
+                hp.connect(gainNode);
+                lfo.start();
+                sources.push(lfo);
+            }
+
+            gainNode.connect(audioCtx.destination);
+            src.start();
+            nodes = { sources, gainNode, type };
+        } catch (e) {
+            console.warn('[ambient] audio error:', e.message);
+            return;
+        }
+
+        ambientNodes = nodes;
+        soundPrefs.ambientSound = type;
+        updateAmbientIndicator();
+        saveSoundPrefs();
+    }
+
+    function setAmbientVolume(v) {
+        soundPrefs.ambientVolume = v;
+        if (ambientNodes?.gainNode) {
+            const factor = ambientNodes.type === 'rain' ? 0.20 :
+                           ambientNodes.type === 'cafe' ? 0.30 : 0.15;
+            ambientNodes.gainNode.gain.value = (v / 100) * factor;
+        }
+    }
+
+    // ── Sound Preferences ─────────────────────────────────────────
+
+    function saveSoundPrefs() {
+        localStorage.setItem(SOUND_PREF_KEY, JSON.stringify(soundPrefs));
+        window.saveSoundPrefsToFirestore?.(soundPrefs);
+    }
+
+    // Chiamato da auth.js dopo il login per applicare le prefs remote
+    window.applyRemoteSoundPrefs = function (prefs) {
+        if (!prefs || typeof prefs !== 'object') return;
+        soundPrefs = { ...soundPrefs, ...prefs };
+        localStorage.setItem(SOUND_PREF_KEY, JSON.stringify(soundPrefs));
+        updateSoundPanelUI();
+        // Riavvia ambient se era attivo in cloud
+        if (soundPrefs.ambientSound && soundPrefs.ambientSound !== 'off') {
+            const prev = soundPrefs.ambientSound;
+            soundPrefs.ambientSound = 'off';
+            startAmbient(prev);
+        }
+    };
+
+    // ── Sound Panel UI ────────────────────────────────────────────
+
+    function updateAmbientIndicator() {
+        soundBtnWrap.classList.toggle('ambient-active', soundPrefs.ambientSound !== 'off');
+    }
+
+    function updateSoundPanelUI() {
+        // Bottoni suono fine sessione
+        endSoundOpts.querySelectorAll('.sound-opt-btn').forEach(btn => {
+            const active = btn.dataset.endSound === soundPrefs.endSound;
+            btn.classList.toggle('sound-opt-btn--active', active);
+            btn.setAttribute('aria-pressed', String(active));
+        });
+        // Bottoni suono ambiente
+        ambientSoundOpts.querySelectorAll('.sound-opt-btn').forEach(btn => {
+            const isOff   = btn.dataset.ambientSound === 'off';
+            const active  = btn.dataset.ambientSound === soundPrefs.ambientSound;
+            btn.classList.toggle('sound-opt-btn--active', isOff && active);
+            btn.classList.toggle('sound-opt-btn--ambient-active', !isOff && active);
+            btn.setAttribute('aria-pressed', String(active));
+        });
+        // Slider volume
+        ambientVolRow.hidden = soundPrefs.ambientSound === 'off';
+        ambientVolSlider.value = soundPrefs.ambientVolume;
+        ambientVolVal.textContent = `${soundPrefs.ambientVolume}%`;
+        ambientVolSlider.style.setProperty('--fill-pct', `${soundPrefs.ambientVolume}%`);
+        // Indicatore dot
+        updateAmbientIndicator();
+    }
+
+    function openSoundPanel() {
+        updateSoundPanelUI();
+        soundPanel.hidden = false;
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSoundPanel() {
+        soundPanel.hidden = true;
+        document.body.style.overflow = '';
+    }
+
+    soundBtn.addEventListener('click', openSoundPanel);
+    soundCloseBtn.addEventListener('click', closeSoundPanel);
+    soundBackdrop.addEventListener('click', closeSoundPanel);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !soundPanel.hidden) closeSoundPanel();
+    });
+
+    // Selezione suono fine sessione + anteprima
+    endSoundOpts.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-end-sound]');
+        if (!btn) return;
+        soundPrefs.endSound = btn.dataset.endSound;
+        updateSoundPanelUI();
+        saveSoundPrefs();
+        requestPermissions();
+        playEndSound(true); // anteprima
+    });
+
+    // Selezione suono ambiente
+    ambientSoundOpts.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-ambient-sound]');
+        if (!btn) return;
+        requestPermissions();
+        startAmbient(btn.dataset.ambientSound);
+        updateSoundPanelUI();
+    });
+
+    // Slider volume
+    ambientVolSlider.addEventListener('input', () => {
+        const v = parseInt(ambientVolSlider.value, 10);
+        setAmbientVolume(v);
+        ambientVolVal.textContent = `${v}%`;
+        ambientVolSlider.style.setProperty('--fill-pct', `${v}%`);
+        saveSoundPrefs();
+    });
 
     // Update SVG progress ring
     function updateRing() {
@@ -1176,7 +1492,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle timer completion
     function timerComplete() {
-        try { playAlarm(); } catch (e) { /* audio non disponibile */ }
+        try { playEndSound(); } catch (e) { /* audio non disponibile */ }
 
         if (isPomodoroMode) {
             if (pomPhase === 'work') {
@@ -1267,6 +1583,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Notification perm
             if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
                 Notification.requestPermission();
+            }
+
+            // Ripristina suono ambiente se era attivo prima del reload
+            if (soundPrefs.ambientSound && soundPrefs.ambientSound !== 'off') {
+                const prev = soundPrefs.ambientSound;
+                soundPrefs.ambientSound = 'off'; // forza ripartenza
+                startAmbient(prev);
             }
         }
     }

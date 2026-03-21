@@ -301,7 +301,7 @@ body {
 }
 
 .toast--visible {
-    bottom: 2rem;
+    bottom: max(2rem, calc(env(safe-area-inset-bottom, 0px) + 1.5rem));
 }
 
 /* ======================================
@@ -2020,7 +2020,7 @@ body {
 }
 
 .auth-snack--visible {
-    top: 1rem;
+    top: max(1rem, calc(env(safe-area-inset-top, 0px) + 0.5rem));
 }
 
 .auth-snack--success {
@@ -2091,7 +2091,7 @@ body {
 }
 
 .update-banner:not([hidden]) {
-    bottom: 5rem;
+    bottom: max(5rem, calc(env(safe-area-inset-bottom, 0px) + 4.5rem));
 }
 
 .update-banner__icon {
@@ -4209,4 +4209,254 @@ body {
     background: rgba(0, 255, 255, 0.18);
     box-shadow: 0 0 16px rgba(0, 255, 255, 0.3);
 }
+}
+
+/* ======================================
+   SOUND PANEL
+====================================== */
+
+.sound-panel {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 210;
+    padding: 0 0 env(safe-area-inset-bottom, 0);
+}
+
+.sound-panel[hidden] {
+    display: none;
+}
+
+.sound-panel__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(3, 6, 14, 0.78);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.sound-panel__drawer {
+    position: relative;
+    background: rgba(5, 8, 22, 0.97);
+    border: 1px solid rgba(0, 255, 255, 0.15);
+    border-bottom: none;
+    border-radius: 20px 20px 0 0;
+    padding: 1.5rem 1.5rem 1.75rem;
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    box-shadow:
+        0 0 40px rgba(0, 255, 255, 0.06),
+        0 -10px 60px rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    animation: hist-slide-up 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.sound-panel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sound-panel__title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 12px rgba(0, 255, 255, 0.5);
+}
+
+.sound-panel__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.sound-panel__close:hover {
+    border-color: var(--neon-cyan);
+    color: var(--neon-cyan);
+}
+
+.sound-panel__section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.sound-panel__section-lbl {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.52rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.sound-panel__opts {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+}
+
+.sound-opt-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.9rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 50px;
+    color: var(--text-secondary);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
+    touch-action: manipulation;
+}
+
+.sound-opt-btn:hover {
+    border-color: rgba(0, 255, 255, 0.4);
+    color: var(--neon-cyan);
+}
+
+.sound-opt-btn--active {
+    background: rgba(0, 255, 255, 0.08);
+    border-color: var(--neon-cyan);
+    color: var(--neon-cyan);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.18);
+}
+
+.sound-opt-btn--ambient-active {
+    background: rgba(255, 0, 255, 0.08);
+    border-color: var(--neon-pink);
+    color: var(--neon-pink);
+    box-shadow: 0 0 10px rgba(255, 0, 255, 0.18);
+}
+
+/* Volume slider row */
+.sound-panel__vol-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.3rem 0 0;
+}
+
+.sound-panel__vol-row i {
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+
+.sound-panel__vol-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 4px;
+    background: linear-gradient(
+        to right,
+        var(--neon-pink) 0%,
+        var(--neon-pink) var(--fill-pct, 50%),
+        rgba(255,255,255,0.1) var(--fill-pct, 50%)
+    );
+    outline: none;
+    cursor: pointer;
+}
+
+.sound-panel__vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: var(--neon-pink);
+    box-shadow: 0 0 8px rgba(255, 0, 255, 0.8);
+    cursor: pointer;
+    border: none;
+}
+
+.sound-panel__vol-slider::-moz-range-thumb {
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: var(--neon-pink);
+    box-shadow: 0 0 8px rgba(255, 0, 255, 0.8);
+    cursor: pointer;
+    border: none;
+}
+
+.sound-panel__vol-val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: var(--neon-pink);
+    min-width: 34px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* Wrapper del pulsante SUONI con indicatore attività ambient */
+.sound-btn-wrap {
+    position: relative;
+    display: inline-flex;
+}
+
+.sound-btn-wrap .ambient-dot {
+    display: none;
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--neon-pink);
+    box-shadow: 0 0 8px rgba(255, 0, 255, 0.9);
+    border: 1.5px solid var(--bg-dark);
+    pointer-events: none;
+    animation: ambient-pulse 2s ease-in-out infinite;
+}
+
+.sound-btn-wrap.ambient-active .ambient-dot {
+    display: block;
+}
+
+@keyframes ambient-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.55; transform: scale(1.35); }
+}
+
+/* Desktop: modale centrata */
+@media (min-width: 480px) {
+    .sound-panel {
+        align-items: center;
+    }
+
+    .sound-panel__drawer {
+        border: 1px solid rgba(0, 255, 255, 0.15);
+        border-radius: 20px;
+        max-height: 80dvh;
+        overflow-y: auto;
+    }
 }

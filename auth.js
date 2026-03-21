@@ -531,6 +531,11 @@ async function loadUserStats(uid) {
                 localStorage.setItem('daily_goal', savedGoal);
                 window.updateDailyGoalDisplay?.();
             }
+            // Ripristina preferenze suoni
+            const savedSoundPrefs = snap.data().soundPrefs;
+            if (savedSoundPrefs) {
+                window.applyRemoteSoundPrefs?.(savedSoundPrefs);
+            }
         } else {
             await setDoc(ref, { totalPomodoros: 0, createdAt: serverTimestamp() });
             authCountEl.textContent = '0';
@@ -629,6 +634,17 @@ window.saveDailyGoalToFirestore = async function(goal) {
         await setDoc(doc(db, 'users', user.uid), { dailyGoal: goal }, { merge: true });
     } catch (e) {
         console.error('[saveDailyGoalToFirestore] Firestore error:', e?.message ?? e);
+    }
+};
+
+// ── Firestore: salva preferenze suoni (chiamato da script.js) ──
+window.saveSoundPrefsToFirestore = async function(prefs) {
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous) return;
+    try {
+        await setDoc(doc(db, 'users', user.uid), { soundPrefs: prefs }, { merge: true });
+    } catch (e) {
+        console.error('[saveSoundPrefs] Firestore error:', e?.message ?? e);
     }
 };
 // ── Flags per notifiche auth ───────────────────────────
