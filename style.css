@@ -4262,10 +4262,14 @@ body {
 
 /* Desktop: centrata come stats-modal */
 @media (min-width: 480px) {
+    .sound-panel {
+        align-items: center;
+        padding: 0;
+    }
+
     .sound-panel__drawer {
         border-radius: 20px;
         border-bottom: 1px solid rgba(0, 255, 255, 0.25);
-        align-self: center;
         max-height: 85dvh;
     }
 }
